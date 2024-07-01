@@ -1,0 +1,9 @@
+{
+  "watch": ["public", "config", "middleware", "models", "routes", "SSL"],
+  "ext": "ts,json,js,ejs,png,jpg,jpeg,svg,css,scss,html,env,jsx",
+  "ignore": ["node_modules"],
+  "exec": "node app.js",
+  "env": {
+    "PORT": "443"
+  }
+}

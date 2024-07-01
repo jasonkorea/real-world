@@ -1,0 +1,92 @@
+html,
+body {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  color: #333;
+}
+
+
+.logo {
+  width: 40px;
+  height: auto;
+}
+
+#id {
+  height: 30px;
+}
+
+
+nav {
+  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: white;
+  padding: 10px;
+  height: 10%
+}
+
+#map {
+  flex: 9;
+}
+
+.open-panel {
+  
+  flex: 200px;
+}
+
+.btn-floating {
+  position: fixed;
+  bottom: 40%; /* 채팅창과 겹치지 않도록 조정 */
+  left: 20px; /* 화면의 좌측에 위치 */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex; /* Flexbox를 사용하여 내용을 중앙에 정렬 */
+  justify-content: center; /* 가로 방향 중앙 정렬 */
+  align-items: center; /* 세로 방향 중앙 정렬 */
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle; /* 텍스트를 수직 방향으로 중앙에 위치시킵니다 */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 2s;
+}
+
+.container-fluid {
+  font-size: 14px; /* 폰트 크기 조정 */
+  color: #444; /* 폰트 색상 조정 */
+  /* 기타 스타일 속성 추가 가능 */
+}
+
+@keyframes slideIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+.chat-panel-show {
+  animation: slideIn 0.5s forwards;
+}
+
+.chat-panel-hide {
+  animation: slideOut 0.5s forwards;
+}
