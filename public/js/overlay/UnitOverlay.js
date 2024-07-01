@@ -37,17 +37,18 @@ export default function createUnitOverayClass() {
             this.div.style.position = "absolute";
 
             // Create the img element and attach it to the div.
-            const img = document.createElement("img");
+            const img = new Image();
+            img.onload = () => {
+                this.div.append(img);
+            };
 
             img.src = this.image;
             img.style.width = "100%";
             img.style.height = "100%";
             img.style.position = "absolute";
-            this.div.appendChild(img);
 
             // Add the element to the "overlayLayer" pane.
             const panes = this.getPanes();
-
             panes.overlayLayer.appendChild(this.div);
         }
 
@@ -61,10 +62,16 @@ export default function createUnitOverayClass() {
             );
 
             if (this.div) {
-                this.div.style.left = sw.x + "px";
-                this.div.style.top = ne.y + "px";
-                this.div.style.width = ne.x - sw.x + "px";
-                this.div.style.height = sw.y - ne.y + "px";
+                // 변경된 부분: 스타일 변경이 필요한 경우에만 적용
+                const newLeft = `${sw.x}px`;
+                const newTop = `${ne.y}px`;
+                const newWidth = `${ne.x - sw.x}px`;
+                const newHeight = `${sw.y - ne.y}px`;
+
+                if (this.div.style.left !== newLeft) this.div.style.left = newLeft;
+                if (this.div.style.top !== newTop) this.div.style.top = newTop;
+                if (this.div.style.width !== newWidth) this.div.style.width = newWidth;
+                if (this.div.style.height !== newHeight) this.div.style.height = newHeight;
             }
         }
 
@@ -108,22 +115,35 @@ export default function createUnitOverayClass() {
                 return;
             }
 
-            console.log('updateBounds');
-            const elapsedTime = (Date.now() - this.startTime) / 1000; // seconds
-            const distanceToTravel = elapsedTime * this.speed; // meters
+            const elapsedTime = this.#getElapsedTimeInSeconds();
+            const distanceTraveled = this.#calculateDistanceTraveled(elapsedTime);
 
-            const currentLatLng = this.#getCurrentPosition(this.startPosition, this.destinationPosition, distanceToTravel);
+            const currentLatLng = this.#getCurrentPosition(this.startPosition, this.destinationPosition, distanceTraveled);
 
-            //목적지에 도착했을 때 이동을 멈추기
-            if (currentLatLng.equals(this.destinationPosition)) {
+            if (this.#hasReachedDestination(currentLatLng)) {
                 this.moving = false;
+            } else {
+                this.#updateOverlayPosition(currentLatLng);
+                this.draw();
             }
-            
-            const oldCenter = this.bounds.getCenter();
-            const newCenter = currentLatLng;
+        }
 
-            const latDiff = newCenter.lat() - oldCenter.lat();
-            const lngDiff = newCenter.lng() - oldCenter.lng();
+        #hasReachedDestination(currentLatLng) {
+            return currentLatLng.equals(this.destinationPosition);
+        }
+
+        #getElapsedTimeInSeconds() {
+            return (Date.now() - this.startTime) / 1000; // Convert milliseconds to seconds
+        }
+
+        #calculateDistanceTraveled(elapsedTime) {
+            return elapsedTime * this.speed; // Distance = Time * Speed
+        }
+
+        #updateOverlayPosition(currentLatLng) {
+            const oldCenter = this.bounds.getCenter();
+            const latDiff = currentLatLng.lat() - oldCenter.lat();
+            const lngDiff = currentLatLng.lng() - oldCenter.lng();
 
             const sw = this.bounds.getSouthWest();
             const ne = this.bounds.getNorthEast();
@@ -132,7 +152,6 @@ export default function createUnitOverayClass() {
             const newNE = new google.maps.LatLng(ne.lat() + latDiff, ne.lng() + lngDiff);
 
             this.bounds = new google.maps.LatLngBounds(newSW, newNE);
-            this.draw();
         }
 
         #getCurrentPosition(start, end, distance) {
