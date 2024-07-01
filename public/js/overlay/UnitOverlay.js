@@ -1,23 +1,30 @@
 export default function createUnitOverayClass() {
     return class UnitOveray extends google.maps.OverlayView {
-        bounds;
-        image;
-        div;
-        id;
-        startPosition;
-        startTime;
-        destinationPosition;
-        moving = false;
-        speed; // 15km/h
+        #bounds;
+        #image;
+        #div;
+        #id;
+        #startPosition;
+        #startTime;
+        #destinationPosition;
+        #moving = false;
+        #speed; // 15km/h
         constructor(id, bounds, image, speedKmPerHour = 15) {
             super();
-            this.id = id;
+            this.#id = id;
             this.bounds = bounds;
             this.image = image;
             this.startPosition = bounds.getCenter();
             this.speed = speedKmPerHour * 1000 / 3600;
         }
 
+        get id() {
+            return this.#id;
+        }
+
+        set id(value) {
+            this.#id = value;
+        }
 
         /**
          * onAdd is called when the map's panes are ready and the overlay has been

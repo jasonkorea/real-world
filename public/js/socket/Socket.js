@@ -1,21 +1,23 @@
 import io from "https://cdn.skypack.dev/socket.io-client";
 export default class Socket {
+    #socket;
+
     constructor() {
-        this.socket = null;
+        this.#socket = null;
         this.#initSocket();
     }
 
     #initSocket() {
-        this.socket = io("https://projectj.tplinkdns.com:443");
+        this.#socket = io("https://projectj.tplinkdns.com:443");
     }
 
     addListener(listener) {
-        this.socket.on("message", listener);
+        this.#socket.on("message", listener);
     }
 
     sendMessage(message) {
         console.log("send message : ", message);
-        this.socket.emit("message", message);
+        this.#socket.emit("message", message);
     }
 
     disconnect() {

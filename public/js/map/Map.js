@@ -2,12 +2,18 @@
 import GPS from "../location/GPS.js";
 
 export default class RealMap {
+    #map;
+
     constructor(map) {
         this.isInitialized = false;
         this.#initMap();
-        this.map = map;
+        this.#map = map;
         this.units = new Map();
-        
+    }
+
+
+    get map() {
+        return this.#map;
     }
 
     async #initMap() {
