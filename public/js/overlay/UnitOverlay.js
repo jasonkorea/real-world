@@ -15,6 +15,7 @@ export default function createUnitOverayClass() {
             this.bounds = info.bounds;
             this.image = info.image;
             this.startPosition = info.bounds.getCenter();
+            this.destinationPosition = info.bounds.getCenter();
             this.calculatedSpeed = info.speed * 1000 / 3600;
         }
 
