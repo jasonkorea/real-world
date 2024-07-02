@@ -167,7 +167,7 @@ export default class MainPanel {
     addListener(listener) {
         this.input.addEventListener("keypress", (e) => {
             if (e.key === "Enter" && this.input.value && this.input.value.trim() !== "") {
-                listener({ sender: this.userInfo.fullName, message: this.input.value });
+                listener({ type: "chat", sender: this.userInfo.fullName, message: this.input.value });
                 this.input.value = "";
             }
         });

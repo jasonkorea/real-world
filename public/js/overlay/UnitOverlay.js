@@ -9,13 +9,13 @@ export default function createUnitOverayClass() {
         #destinationPosition;
         #moving = false;
         #speed; // 15km/h
-        constructor(id, bounds, image, speedKmPerHour = 15) {
+        constructor(info) {
             super();
-            this.#id = id;
-            this.bounds = bounds;
-            this.image = image;
-            this.startPosition = bounds.getCenter();
-            this.speed = speedKmPerHour * 1000 / 3600;
+            this.#id = info.googleId;
+            this.bounds = info.bounds;
+            this.image = info.image;
+            this.startPosition = info.bounds.getCenter();
+            this.calculatedSpeed = info.speed * 1000 / 3600;
         }
 
         get id() {
@@ -24,6 +24,14 @@ export default function createUnitOverayClass() {
 
         set id(value) {
             this.#id = value;
+        }
+
+        get lat() {
+            return this.bounds.getCenter().lat();
+        }
+
+        get lng() {
+            return this.bounds.getCenter().lng();
         }
 
         /**
@@ -137,7 +145,7 @@ export default function createUnitOverayClass() {
         }
 
         #calculateDistanceTraveled(elapsedTime) {
-            return elapsedTime * this.speed; // Distance = Time * Speed
+            return elapsedTime * this.calculatedSpeed; // Distance = Time * Speed
         }
 
         #updateOverlayPosition(currentLatLng) {

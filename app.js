@@ -68,8 +68,20 @@ io.on('connection', (socket) => {
 
   // 클라이언트로부터 메시지 받기
   socket.on('message', (msg) => {
-    console.log(`[${msg.sender}] ${msg.message}`);
-    io.emit('message', msg);
+    console.log('Received', msg);
+    if (msg.type === 'move') {
+      io.emit('message', msg);
+    } else if (msg.type === 'chat') {
+      io.emit('message', msg);
+    } else if (msg.type === 'visibilitychange') {
+      // 메시지를 받은 클라이언트에게만 메시지를 전송
+      socket.emit('message', {
+        type: 'updateAllClients',
+        sender: 'server',
+        message: msg.visibility
+      });
+
+    }
   });
 });
 

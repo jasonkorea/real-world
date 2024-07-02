@@ -1,3 +1,4 @@
+import visibilitychange from "./config.js";
 // GPS
 import GPS from "./location/GPS.js";
 
@@ -25,6 +26,7 @@ let gameMap;
 let gameTimer;
 
 let unit;
+let units = new Map();
 
 async function initMap() {
 
@@ -45,14 +47,23 @@ async function initMap() {
 
   // MainPanel과 Socket을 연결
   const mainPanel = MainPanel.getInstance();
-  const socket = Socket.getInstance();
   mainPanel.addListener((message) => {
-    console.log(message);
-    socket.sendMessage(message);
+    console.log("from panel :", message);
+    Socket.getInstance().sendMessage(message);
   });
-  socket.addListener((message) => {
-    console.log(`[${message.sender}] : ${message.message}`);
-    mainPanel.addChat(message);
+
+  Socket.getInstance().addListener((message) => {
+    console.log("from server :", message);
+    if (message.type === "chat") {
+      console.log(`[${message.sender}] : ${message.message}`);
+      mainPanel.addChat(message);
+    } else if (message.type === "move") {
+      console.log("unit 이동", message);
+      const unit = units.get(message.sender);
+      if (unit) {
+        unit.move(message.unitInfo.destinationPosition.lat, message.unitInfo.destinationPosition.lng);
+      }
+    }
   });
 
   // 유저 정보를 설정한다.
@@ -66,6 +77,7 @@ async function initMap() {
 
   // GPS 정보를 받아서 유닛을 생성하고 현재 위치로 이동한다.
   GPS.getInstance().getLastPosition().then(position => {
+    console.log("최신 GPS 정보 받음. 유닛 추가 후 이동!");
     addUnit({
       position: position,
       size: 10,
@@ -78,12 +90,31 @@ async function initMap() {
   gameMap.map.addListener('click', (event) => {
     console.log('clicked!', event);
     // unit이 있으면 이동시킨다.
-    if (unit) {
-      unit.move(event.latLng.lat(), event.latLng.lng());
+    const unit = units.get(user.googleId);
+    if (!unit) {
+      return;
     }
+    Socket.getInstance().sendMessage({
+      "type": "move",
+      "sender": user.googleId,
+      "unitInfo": {
+        "currentPosition": {
+          "lat": unit.lat,
+          "lng": unit.lng
+        },
+        "destinationPosition": event.latLng.toJSON(),
+      }
+    });
+  });
+
+  visibilitychange((visibility) => {
+    Socket.getInstance().sendMessage({
+      "type": "visibilitychange",
+      "sender": user.googleId,
+      "visibility": visibility
+    });
   });
 }
-
 // ============================================================= 
 
 function setUserInfoFromHeader(user) {
@@ -114,9 +145,16 @@ function addUnit(info) {
     new google.maps.LatLng(ne.newLat, ne.newLng)
   );
   UnitOveray = UnitOverlay();
-  unit = new UnitOveray(user.googleId, bounds, '../resources/pika.png', info.speed);
+  unit = new UnitOveray({
+    "googleId": user.googleId,
+    "bounds": bounds,
+    "image": '../resources/pika.png',
+    "speed": info.speed
+  });
   gameMap.addUnit(unit);
   gameTimer.addOverlay(unit);
+  units.set(user.googleId, unit);
+  console.log("unit 추가 됨", unit);
 }
 
 initMap();

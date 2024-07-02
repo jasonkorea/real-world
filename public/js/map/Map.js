@@ -1,6 +1,6 @@
 //Create class controls and return google map object
 import GPS from "../location/GPS.js";
-
+import UnitOverlay from "../overlay/UnitOverlay.js";
 export default class RealMap {
     #map;
 
