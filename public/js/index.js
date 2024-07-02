@@ -58,7 +58,6 @@ async function initMap() {
       console.log(`[${message.sender}] : ${message.message}`);
       mainPanel.addChat(message);
     } else if (message.type === "move") {
-      console.log("unit 이동", message);
       const unit = units.get(message.sender);
       if (unit) {
         unit.move(message.unitInfo.destinationPosition.lat, message.unitInfo.destinationPosition.lng);

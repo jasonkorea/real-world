@@ -16,8 +16,6 @@ export default class Socket {
     }
 
     sendMessage(message) {
-
-        //console.log("Socket.js send message : ", message["type"], message["message"]);
         console.log("Socket.js send message", message);
         this.#socket.emit("message", message);
     }
