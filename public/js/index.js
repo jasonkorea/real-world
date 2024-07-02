@@ -38,7 +38,14 @@ async function initMap() {
   const map = new Map(document.getElementById("map"), {
     zoom: 20,
     center: { lat: 37.5665, lng: 126.9780 },
-    mapId: "ID_REAL_WORLD"
+    mapId: "ID_REAL_WORLD",
+    disableDoubleClickZoom: true,
+    //disable street view
+    streetViewControl: false,
+    //disable zoom control
+    zoomControl: false,
+    //disable map type control
+    mapTypeControl: false,
   });
   gameMap = new GameMap(map);
 
@@ -80,7 +87,7 @@ async function initMap() {
     addUnit({
       position: position,
       size: 10,
-      speed: 100
+      speed: 200
     });
     gameMap.moveToCurrentPosition();
   });
