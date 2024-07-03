@@ -46,6 +46,19 @@ async function initMap() {
     zoomControl: false,
     //disable map type control
     mapTypeControl: false,
+    clickableIcons: false,
+    styles: [
+      {
+        featureType: "poi",
+        elementType: "labels",
+        stylers: [
+          {
+            visibility: "off",
+          },
+        ],
+      },
+    ],
+
   });
   gameMap = new GameMap(map);
 
