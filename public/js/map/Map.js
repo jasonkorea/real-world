@@ -148,11 +148,10 @@ export default class RealMap {
         this.map.panTo({ lat: this.position.coords.latitude, lng: this.position.coords.longitude });
     }
 
-    moveUnit(id, lat, lng) {
-        const unit = this.units.get(id);
+    moveUnit(message) {
+        const unit = this.units.get(message.sender);
         if (unit) {
-            console.log("Map.js : unit 이동", id, lat, lng);
-            unit.move(lat, lng);
+            unit.move(unit.destinationPosition.lat, unit.destinationPosition.lng);
         }
     }
 

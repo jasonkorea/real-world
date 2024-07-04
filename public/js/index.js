@@ -73,8 +73,7 @@ async function initMap() {
     } else if (message.type === "move") {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
       if (unit) {
-        console.log("unit 이동", message.sender, message.unitInfo.destinationPosition.lat, message.unitInfo.destinationPosition.lng);
-        GameMap.getInstance().moveUnit(message.sender, message.unitInfo.destinationPosition.lat, message.unitInfo.destinationPosition.lng);
+        GameMap.getInstance().moveUnit(message);
       } else {
         console.log("unit 없음", message.sender);
         addUnit({
