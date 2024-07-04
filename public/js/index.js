@@ -73,6 +73,7 @@ async function initMap() {
     } else if (message.type === "move") {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
       if (unit) {
+        console.log("unit 있음", message.sender);
         GameMap.getInstance().moveUnit(message);
       } else {
         console.log("unit 없음", message.sender);

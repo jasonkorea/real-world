@@ -64,7 +64,9 @@ export default class RealMap {
                 });
             }
 
-            unit.destinationPosition = event.latLng.toJSON();
+            unit.destinationPosition = event.latLng.toJSON(); // 목적지가 갱신되는 이유
+            console.log("목적지 갱신", unit.destinationPosition);
+
             Socket.getInstance().sendMessage({
               "type": "move",
               "sender": this.#userId,
