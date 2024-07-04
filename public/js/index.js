@@ -18,15 +18,7 @@ import User from "./user/User.js";
 import MainPanel from "./control/MainPanel.js";
 import Nav from "./control/Nav.js";
 
-import UnitOverlay from "./overlay/UnitOverlay.js";
-
 const user = new User();
-let UnitOveray;
-let gameMap;
-let gameTimer;
-
-let unit;
-let units = new Map();
 
 async function initMap() {
 
@@ -58,11 +50,12 @@ async function initMap() {
         ],
       },
     ],
-
   });
-  gameMap = new GameMap(map);
 
-  // Nav를 생성한다.
+  // 유저 정보를 설정한다.
+  setUserInfoFromHeader(user);
+
+  new GameMap(map, user.googleId);
   new Nav();
 
   // MainPanel과 Socket을 연결
@@ -78,53 +71,56 @@ async function initMap() {
       console.log(`[${message.sender}] : ${message.message}`);
       mainPanel.addChat(message);
     } else if (message.type === "move") {
-      const unit = units.get(message.sender);
+      const unit = GameMap.getInstance().getUnits().get(message.sender);
       if (unit) {
-        unit.move(message.unitInfo.destinationPosition.lat, message.unitInfo.destinationPosition.lng);
+        console.log("unit 이동", message.sender, message.unitInfo.destinationPosition.lat, message.unitInfo.destinationPosition.lng);
+        GameMap.getInstance().moveUnit(message.sender, message.unitInfo.destinationPosition.lat, message.unitInfo.destinationPosition.lng);
+      } else {
+        console.log("unit 없음", message.sender);
+        addUnit({
+          id: message.sender,
+          lat: message.unitInfo.currentPosition.lat,
+          lng: message.unitInfo.currentPosition.lng,
+          size: 10,
+          speed: 200,
+          image: '../resources/pika.png'
+        });
       }
     }
   });
 
-  // 유저 정보를 설정한다.
-  setUserInfoFromHeader(user);
 
   // MainPanel에 유저 정보를 설정한다.
   MainPanel.getInstance().setUserInfo(user.getProfileInfo());
 
-  // 타이머 시작
-  startTimer();
+
+  GameTimer.getInstance().start();
 
   // GPS 정보를 받아서 유닛을 생성하고 현재 위치로 이동한다.
   GPS.getInstance().getLastPosition().then(position => {
-    console.log("최신 GPS 정보 받음. 유닛 추가 후 이동!");
-    addUnit({
-      position: position,
-      size: 10,
-      speed: 200
-    });
-    gameMap.moveToCurrentPosition();
+    console.log("최신 GPS 정보 받음. 지도 이동");
+    GameMap.getInstance().moveToCurrentPosition();
   });
 
-  // 클릭 이벤트를 추가한다.
-  gameMap.map.addListener('click', (event) => {
-    console.log('clicked!', event);
-    // unit이 있으면 이동시킨다.
-    const unit = units.get(user.googleId);
-    if (!unit) {
-      return;
-    }
-    Socket.getInstance().sendMessage({
-      "type": "move",
-      "sender": user.googleId,
-      "unitInfo": {
-        "currentPosition": {
-          "lat": unit.lat,
-          "lng": unit.lng
-        },
-        "destinationPosition": event.latLng.toJSON(),
-      }
+  function addUnit(info) {
+    const lat = info.lat;
+    const lng = info.lng;
+    const size = info.size;
+    const speed = info.speed;
+    const image = info.image;
+
+    const unit = GameMap.getInstance().addUnit({
+      "googleId": user.googleId,
+      "lat": lat,
+      "lng": lng,
+      "size": size,
+      "speed": speed,
+      "image": image
     });
-  });
+    GameTimer.getInstance().addOverlay(unit);
+    
+    console.log("unit 추가 됨", unit);
+  }
 
   visibilitychange((visibility) => {
     Socket.getInstance().sendMessage({
@@ -147,33 +143,6 @@ function setUserInfoFromHeader(user) {
     userinfo.googleId,
     userinfo.image,
     new Date(userinfo.createdAt));
-}
-
-function startTimer() {
-  gameTimer = new GameTimer();
-  gameTimer.start();
-}
-
-// 유닛을 맵에 추가하고 타이머에 등록한다.
-function addUnit(info) {
-  const sw = gameMap.getNewPosition(info.position.coords.latitude, info.position.coords.longitude, -info.size / 2, - info.size / 2);
-  const ne = gameMap.getNewPosition(info.position.coords.latitude, info.position.coords.longitude, info.size / 2, info.size / 2);
-
-  const bounds = new google.maps.LatLngBounds(
-    new google.maps.LatLng(sw.newLat, sw.newLng),
-    new google.maps.LatLng(ne.newLat, ne.newLng)
-  );
-  UnitOveray = UnitOverlay();
-  unit = new UnitOveray({
-    "googleId": user.googleId,
-    "bounds": bounds,
-    "image": '../resources/pika.png',
-    "speed": info.speed
-  });
-  gameMap.addUnit(unit);
-  gameTimer.addOverlay(unit);
-  units.set(user.googleId, unit);
-  console.log("unit 추가 됨", unit);
 }
 
 initMap();

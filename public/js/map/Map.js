@@ -1,20 +1,29 @@
 //Create class controls and return google map object
 import GPS from "../location/GPS.js";
 import UnitOverlay from "../overlay/UnitOverlay.js";
+import Socket from "../socket/Socket.js";
 export default class RealMap {
     #map;
+    get map() {
+        return this.#map;
+    }
 
-    constructor(map) {
+    units;
+    #userId;
+    instance;
+
+    constructor(map, googleId) {
+        this.#userId = googleId;
         this.isInitialized = false;
         this.#initMap();
         this.#map = map;
         this.units = new Map();
+        this.UnitOveray = UnitOverlay();
+        RealMap.instance = this;
     }
 
 
-    get map() {
-        return this.#map;
-    }
+
 
     async #initMap() {
         console.log('initMap');
@@ -38,27 +47,39 @@ export default class RealMap {
 
 
         this._addControl();
+
+        this.#map.addListener('click', (event) => {
+            console.log('clicked!', event);
+            
+            let unit = this.units.get(this.#userId);
+            if (!unit) {
+                console.log("unit이 없어서 생성");
+                unit = new this.UnitOveray({
+                    googleId: this.#userId,
+                    lat: event.latLng.toJSON().lat,
+                    lng: event.latLng.toJSON().lng,
+                    size: 10,
+                    speed: 200,
+                    image: "../resources/pika.png"
+                });
+            }
+
+            unit.destinationPosition = event.latLng.toJSON();
+            Socket.getInstance().sendMessage({
+              "type": "move",
+              "sender": this.#userId,
+              "unitInfo": {
+                "currentPosition": unit.currentPosition,
+                "destinationPosition": unit.destinationPosition,
+                "image": unit.image,
+              }
+            });
+          });
     }
 
     #updateLocation(position) {
         this.position = position;
     }
-
-    getNewPosition(lat, lng, xMeter, yMeter) {
-        // Earth’s radius, sphere
-        const R = 6378137;
-
-        // Coordinate offsets in radians
-        const dLat = yMeter / R;
-        const dLng = xMeter / (R * Math.cos(Math.PI * lat / 180));
-
-        // OffsetPosition, decimal degrees
-        const newLat = lat + dLat * 180 / Math.PI;
-        const newLng = lng + dLng * 180 / Math.PI;
-
-        return { newLat, newLng };
-    }
-
 
     async #createMarker() {
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -108,9 +129,16 @@ export default class RealMap {
         this.map.controls[google.maps.ControlPosition.RIGHT_TOP].push(controlDiv);
     }
 
-    addUnit(unit) {
+    addUnit(unitInfo) {
+        const unit = new this.UnitOveray(unitInfo);
         this.units.set(unit.id, unit);
         unit.setMap(this.map);
+        unit.move(unitInfo.lat, unitInfo.lng);
+        return unit;
+    }
+
+    getUnits() {
+        return this.units;
     }
 
     moveToCurrentPosition() {
@@ -118,5 +146,20 @@ export default class RealMap {
             return;
         }
         this.map.panTo({ lat: this.position.coords.latitude, lng: this.position.coords.longitude });
+    }
+
+    moveUnit(id, lat, lng) {
+        const unit = this.units.get(id);
+        if (unit) {
+            console.log("Map.js : unit 이동", id, lat, lng);
+            unit.move(lat, lng);
+        }
+    }
+
+    static getInstance() {
+        if (!RealMap.instance) {
+            RealMap.instance = new RealMap();
+        }
+        return RealMap.instance;
     }
 }

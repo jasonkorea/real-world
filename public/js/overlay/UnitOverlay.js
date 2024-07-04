@@ -7,16 +7,50 @@ export default function createUnitOverayClass() {
         #startPosition;
         #startTime;
         #destinationPosition;
-        #moving = false;
-        #speed; // 15km/h
+        #moving = true;
+        #speed;
+        #lat;
+        #lng;
+        #size;
+
         constructor(info) {
             super();
             this.#id = info.googleId;
-            this.bounds = info.bounds;
+            this.#lat = info.lat;
+            this.#lng = info.lng;
+            this.#size = info.size;
+            this.#speed = info.speed;
             this.image = info.image;
-            this.startPosition = info.bounds.getCenter();
-            this.destinationPosition = info.bounds.getCenter();
+            this.#startPosition = { lat: info.lat, lng: info.lng };
+            this.currentPosition = { lat: info.lat, lng: info.lng };
+            this.#destinationPosition = { lat: info.lat, lng: info.lng };
             this.calculatedSpeed = info.speed * 1000 / 3600;
+            this.#setBounds(this.#lat, this.#lng, this.#size);
+        }
+
+        #setBounds(lat, lng, size) {
+            const sw = this.#getNewPosition(lat, lng, -size / 2, -size / 2);
+            const ne = this.#getNewPosition(lat, lng, size / 2, size / 2);
+
+            this.#bounds = new google.maps.LatLngBounds(
+                new google.maps.LatLng(sw.newLat, sw.newLng),
+                new google.maps.LatLng(ne.newLat, ne.newLng)
+            );
+        }
+
+        #getNewPosition(lat, lng, xMeter, yMeter) {
+            // Earth’s radius, sphere
+            const R = 6378137;
+
+            // Coordinate offsets in radians
+            const dLat = yMeter / R;
+            const dLng = xMeter / (R * Math.cos(Math.PI * lat / 180));
+
+            // OffsetPosition, decimal degrees
+            const newLat = lat + dLat * 180 / Math.PI;
+            const newLng = lng + dLng * 180 / Math.PI;
+
+            return { newLat, newLng };
         }
 
         get id() {
@@ -62,12 +96,22 @@ export default function createUnitOverayClass() {
         }
 
         draw() {
+            if (!this.#bounds) {
+                console.log('bounds is null');
+                return;
+            }
+
             const overlayProjection = this.getProjection();
+            if (!overlayProjection) {
+                console.log('overlayProjection is null');
+                return;
+            }
+
             const sw = overlayProjection.fromLatLngToDivPixel(
-                this.bounds.getSouthWest(),
+                this.#bounds.getSouthWest(),
             );
             const ne = overlayProjection.fromLatLngToDivPixel(
-                this.bounds.getNorthEast(),
+                this.#bounds.getNorthEast(),
             );
 
             if (this.div) {
@@ -120,17 +164,24 @@ export default function createUnitOverayClass() {
 
 
         updateBounds() {
-            if (!this.moving) {
+            if (!this.#moving) {
                 return;
             }
 
             const elapsedTime = this.#getElapsedTimeInSeconds();
             const distanceTraveled = this.#calculateDistanceTraveled(elapsedTime);
 
-            const currentLatLng = this.#getCurrentPosition(this.startPosition, this.destinationPosition, distanceTraveled);
+            const currentLatLng = this.#getCurrentPosition(this.#startPosition, this.#destinationPosition, distanceTraveled);
+
+            if (currentLatLng === null) {
+                console.log('currentLatLng is null');
+                return;
+            }
 
             if (this.#hasReachedDestination(currentLatLng)) {
-                this.moving = false;
+                console.log('reached destination');
+                this.draw();
+                this.#moving = false;
             } else {
                 this.#updateOverlayPosition(currentLatLng);
                 this.draw();
@@ -138,11 +189,11 @@ export default function createUnitOverayClass() {
         }
 
         #hasReachedDestination(currentLatLng) {
-            return currentLatLng.equals(this.destinationPosition);
+            return currentLatLng.equals(this.#destinationPosition);
         }
 
         #getElapsedTimeInSeconds() {
-            return (Date.now() - this.startTime) / 1000; // Convert milliseconds to seconds
+            return (Date.now() - this.#startTime) / 1000; // Convert milliseconds to seconds
         }
 
         #calculateDistanceTraveled(elapsedTime) {
@@ -150,23 +201,30 @@ export default function createUnitOverayClass() {
         }
 
         #updateOverlayPosition(currentLatLng) {
-            const oldCenter = this.bounds.getCenter();
+            const oldCenter = this.#bounds.getCenter();
             const latDiff = currentLatLng.lat() - oldCenter.lat();
             const lngDiff = currentLatLng.lng() - oldCenter.lng();
 
-            const sw = this.bounds.getSouthWest();
-            const ne = this.bounds.getNorthEast();
+            const sw = this.#bounds.getSouthWest();
+            const ne = this.#bounds.getNorthEast();
 
             const newSW = new google.maps.LatLng(sw.lat() + latDiff, sw.lng() + lngDiff);
             const newNE = new google.maps.LatLng(ne.lat() + latDiff, ne.lng() + lngDiff);
 
-            this.bounds = new google.maps.LatLngBounds(newSW, newNE);
+            this.#bounds = new google.maps.LatLngBounds(newSW, newNE);
         }
 
         #getCurrentPosition(start, end, distance) {
+            if (!start || !end) {
+                return null;
+            }
             const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(start, end);
 
             if (distance >= totalDistance) {
+                return end;
+            }
+
+            if (start.equals(end)) {
                 return end;
             }
 
@@ -178,10 +236,10 @@ export default function createUnitOverayClass() {
         }
 
         move(destLat, destLng) {
-            this.startPosition = this.bounds.getCenter();
-            this.destinationPosition = new google.maps.LatLng(destLat, destLng);
-            this.startTime = Date.now();
-            this.moving = true;
+            this.#startPosition = this.#bounds.getCenter();
+            this.#destinationPosition = new google.maps.LatLng(destLat, destLng);
+            this.#startTime = Date.now();
+            this.#moving = true;
         }
     }
 }
