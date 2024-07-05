@@ -71,9 +71,11 @@ export default class RealMap {
               "type": "move",
               "sender": this.#userId,
               "unitInfo": {
-                "currentPosition": unit.currentPosition,
+                "startPosition": unit.startPosition,
                 "destinationPosition": unit.destinationPosition,
                 "image": unit.image,
+                "size": unit.size,
+                "speed": unit.speed
               }
             });
           });

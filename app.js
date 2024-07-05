@@ -1,3 +1,5 @@
+//https://github.com/atultyagi612/Google-Authentication-nodejs/blob/main/app.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -8,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const socketio = require('socket.io');
+const dbm = require('./db/dbmanager');
 
 dotenv.config({ path: './config/config.env' });
 var app = express();
@@ -67,10 +70,23 @@ io.on('connection', (socket) => {
   });
 
   // 클라이언트로부터 메시지 받기
-  socket.on('message', (msg) => {
+  socket.on('message', async (msg) => {
     console.log('Received', msg);
     if (msg.type === 'move') {
-      io.emit('message', msg);
+      const freshUnit = await dbm.createOrUpdateUnit(msg);
+      console.log('freshUnit', freshUnit);
+      const response = {
+        type: 'move',
+        sender: msg.sender,
+        unitInfo: {
+          startPosition: freshUnit.startPosition,
+          destinationPosition: freshUnit.destinationPosition,
+          size: freshUnit.size,
+          speed: freshUnit.speed,
+          image: freshUnit.image
+        }
+      };
+      io.emit('message', response);
     } else if (msg.type === 'chat') {
       io.emit('message', msg);
     } else if (msg.type === 'visibilitychange') {

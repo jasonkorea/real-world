@@ -79,8 +79,8 @@ async function initMap() {
         console.log("unit 없음", message.sender);
         addUnit({
           id: message.sender,
-          lat: message.unitInfo.currentPosition.lat,
-          lng: message.unitInfo.currentPosition.lng,
+          lat: message.unitInfo.startPosition.lat,
+          lng: message.unitInfo.startPosition.lng,
           size: 10,
           speed: 200,
           image: '../resources/pika.png'

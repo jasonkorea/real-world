@@ -20,14 +20,19 @@ const UserSchema = new mongoose.Schema({
   image: {
     type: String,
   },
-  email:{
-type:String,
-required: true,
+  email: {
+    type: String,
+    required: true,
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
+  unit: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Unit',
+    default: null,
+  }
 })
 
 module.exports = mongoose.model('User', UserSchema)

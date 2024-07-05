@@ -1,23 +1,17 @@
 export default function createUnitOverayClass() {
     return class UnitOveray extends google.maps.OverlayView {
         #bounds;
-        #image;
-        #div;
         #id;
         #startPosition;
         #startTime;
         #destinationPosition;
         #moving = true;
         #speed;
-        #lat;
-        #lng;
         #size;
 
         constructor(info) {
             super();
             this.#id = info.googleId;
-            this.#lat = info.lat;
-            this.#lng = info.lng;
             this.#size = info.size;
             this.#speed = info.speed;
             this.image = info.image;
@@ -25,7 +19,7 @@ export default function createUnitOverayClass() {
             this.currentPosition = { lat: info.lat, lng: info.lng };
             this.#destinationPosition = { lat: info.lat, lng: info.lng };
             this.calculatedSpeed = info.speed * 1000 / 3600;
-            this.#setBounds(this.#lat, this.#lng, this.#size);
+            this.#setBounds(info.lat, info.lng, info.size);
         }
 
         #setBounds(lat, lng, size) {
@@ -67,6 +61,18 @@ export default function createUnitOverayClass() {
 
         get lng() {
             return this.bounds.getCenter().lng();
+        }
+
+        get startPosition() {
+            return this.#startPosition;
+        }
+
+        get speed() {
+            return this.#speed;
+        }
+
+        get size() {
+            return this.#size;
         }
 
         /**
