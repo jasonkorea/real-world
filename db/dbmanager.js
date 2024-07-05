@@ -20,6 +20,7 @@ exports.createOrUpdateUnit = async (unit) => {
             existingUnit.image = unit.unitInfo.image;
             existingUnit.startPosition = unit.unitInfo.startPosition;
             existingUnit.destinationPosition = unit.unitInfo.destinationPosition;
+            existingUnit.startTime = unit.unitInfo.startTime;
             // 업데이트된 유닛을 저장합니다.
             await existingUnit.save();
             console.log('유닛이 업데이트되었습니다.');
@@ -31,7 +32,8 @@ exports.createOrUpdateUnit = async (unit) => {
                 speed: unit.unitInfo.speed,
                 image: unit.unitInfo.image,
                 startPosition: unit.unitInfo.startPosition,
-                destinationPosition: unit.unitInfo.destinationPosition
+                destinationPosition: unit.unitInfo.destinationPosition,
+                startTime: unit.unitInfo.startTime
             });
             await newUnit.save();
             user.unit = newUnit._id;
@@ -43,5 +45,15 @@ exports.createOrUpdateUnit = async (unit) => {
     } catch (error) {
         console.error(error);
         throw error; // 호출자가 처리할 수 있도록 오류를 다시 던집니다.
+    }
+}
+
+exports.getAllUnits = async () => {
+    try {
+        const units = await Unit.find();
+        return units;
+    } catch (error) {
+        console.error(error);
+        throw error;
     }
 }

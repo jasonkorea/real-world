@@ -102,7 +102,16 @@ async function initMap() {
   GPS.getInstance().getLastPosition().then(position => {
     console.log("최신 GPS 정보 받음. 지도 이동");
     GameMap.getInstance().moveToCurrentPosition();
+    requestInitialData();
+
   });
+
+  function requestInitialData() {
+    Socket.getInstance().sendMessage({
+      "type": "requestInitialData",
+      "sender": user.googleId
+    });
+  }
 
   function addUnit(info) {
     const lat = info.lat;
@@ -117,7 +126,7 @@ async function initMap() {
       "lng": lng,
       "size": size,
       "speed": speed,
-      "image": image
+      "image": image,
     });
     GameTimer.getInstance().addOverlay(unit);
     

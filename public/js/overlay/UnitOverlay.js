@@ -67,6 +67,10 @@ export default function createUnitOverayClass() {
             return this.#startPosition;
         }
 
+        get startTime() {
+            return this.#startTime;
+        }
+
         get speed() {
             return this.#speed;
         }

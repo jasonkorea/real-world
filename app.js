@@ -83,7 +83,8 @@ io.on('connection', (socket) => {
           destinationPosition: freshUnit.destinationPosition,
           size: freshUnit.size,
           speed: freshUnit.speed,
-          image: freshUnit.image
+          image: freshUnit.image,
+          startTime: freshUnit.startTime
         }
       };
       io.emit('message', response);
@@ -96,7 +97,25 @@ io.on('connection', (socket) => {
         sender: 'server',
         message: msg.visibility
       });
-
+    } else if (msg.type === 'requestInitialData') {
+      const units = await dbm.getAllUnits();
+      console.log('units', units);
+      units.forEach(unit => {
+        const response = {
+          type: 'move',
+          sender: unit.id,
+          unitInfo: {
+            startPosition: unit.startPosition,
+            destinationPosition: unit.destinationPosition,
+            size: unit.size,
+            speed: unit.speed,
+            image: unit.image,
+            startTime: unit.startTime,
+            fromDb: true
+          }
+        };
+        socket.emit('message', response);
+      });
     }
   });
 });

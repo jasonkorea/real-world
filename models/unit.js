@@ -8,6 +8,7 @@ const unitSchema = new mongoose.Schema({
     image: { type: String, required: true },
     startPosition: {lat: Number, lng: Number},
     destinationPosition: {lat: Number, lng: Number},
+    startTime: {type: Number, required: false}
 },
     {
         timestamps: true
