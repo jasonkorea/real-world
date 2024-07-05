@@ -86,6 +86,8 @@ async function initMap() {
           image: '../resources/pika.png'
         });
       }
+    } else if (message.type === "notice") {
+      mainPanel.addChat(message);
     }
   });
 

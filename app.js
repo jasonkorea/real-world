@@ -62,7 +62,7 @@ const io = socketio(server);
 // 클라이언트 연결 이벤트 처리
 io.on('connection', (socket) => {
   console.log('A user connected');
-  socket.emit('message', { sender: 'server', message: 'Welcome to the Real World!' });
+  socket.emit('message', { type: 'notice', sender: 'server', message: 'Welcome to the Real World!' });
 
   // 연결 해제 이벤트 처리
   socket.on('disconnect', () => {
