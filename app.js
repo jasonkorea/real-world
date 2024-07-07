@@ -61,6 +61,10 @@ const io = socketio(server);
 
 // 클라이언트 연결 이벤트 처리
 io.on('connection', (socket) => {
+
+  //clear all units
+  //dbm.clearAllUnits();
+
   console.log('A user connected');
   socket.emit('message', { type: 'notice', sender: 'server', message: 'Welcome to the Real World!' });
 

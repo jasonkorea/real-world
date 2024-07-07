@@ -57,3 +57,13 @@ exports.getAllUnits = async () => {
         throw error;
     }
 }
+
+//clear all units
+exports.clearAllUnits = async () => {
+    try {
+        await Unit.deleteMany({});
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
