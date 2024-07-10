@@ -84,7 +84,7 @@ async function initMap() {
           startPosition: message.unitInfo.startPosition,
           destinationPosition: message.unitInfo.destinationPosition,
           size: 100,
-          speed: 2000,
+          speed: 1000,
           image: '../resources/pika.png',
           startTime: message.unitInfo.startTime
         });

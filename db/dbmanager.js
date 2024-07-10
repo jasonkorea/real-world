@@ -24,7 +24,7 @@ exports.createOrUpdateUnit = async (unit) => {
             existingUnit.image = unit.unitInfo.image;
             existingUnit.startPosition = unit.unitInfo.startPosition;
             existingUnit.destinationPosition = unit.unitInfo.destinationPosition;
-            existingUnit.startTime = unit.unitInfo.startTime;
+            existingUnit.startTime = Date.now();
             //현재 시간과 startTime을 함께 출력
             console.log('현재 시간:', Date.now());
             console.log('startTime:', existingUnit.startTime);

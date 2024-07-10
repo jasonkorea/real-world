@@ -61,7 +61,7 @@ export default class RealMap {
                     startPosition: event.latLng.toJSON(),
                     destinationPosition: event.latLng.toJSON(),
                     size: 100,
-                    speed: 2000,
+                    speed: 1000,
                     image: "../resources/pika.png",
                     startTime: Date.now()
                 });

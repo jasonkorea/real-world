@@ -150,7 +150,7 @@ export default function createUnitOverlayClass() {
         }
 
         #getElapsedTimeInSeconds() {
-            console.log("getElapsedTimeInSeconds", (Date.now() - this.#startTime) / 1000);
+            // console.log("getElapsedTimeInSeconds", (Date.now() - this.#startTime) / 1000);
             return (Date.now() - this.#startTime) / 1000;
         }
 
@@ -199,10 +199,11 @@ export default function createUnitOverlayClass() {
             console.log("startTime", startTime);
             console.log("now", Date.now());
             //둘 차이 1자리 소수점 초단위 출력
-            this.#startTime = startTime;
-            console.log("diff", this.#getElapsedTimeInSeconds());
-            //this.#startTime = Date.now();
-            //Update related properties
+            if ((Date.now() - startTime) / 1000 < 0) {
+                this.#startTime = Date.now();
+            } else {
+                this.#startTime = startTime;
+            }
 
             this.#moving = true;
         }
