@@ -13,7 +13,7 @@ export default class MainPanel {
     enableGps() {
         GPS.getInstance().addListener({
             onSuccess: (position) => {
-                this.addChat({ sender: "GPS", message: `${Date.now()} lat : ${position.coords.latitude}, lng : ${position.coords.longitude}` });
+                // this.addChat({ sender: "GPS", message: `${Date.now()} lat : ${position.coords.latitude}, lng : ${position.coords.longitude}` });
             },
             onError: (error) => {
                 this.addChat({ sender: "GPS", message: `error : ${error.message}` });

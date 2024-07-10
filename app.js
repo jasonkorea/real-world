@@ -67,7 +67,7 @@ const io = socketio(server);
 io.on('connection', (socket) => {
 
   console.log('A user connected');
-  socket.emit('message', { type: 'notice', sender: 'server', message: 'Welcome to the Real World!' });
+  socket.emit('message', { type: 'notice', sender: 'server', message: '현재 위치를 인식중입니다. 인식 후 "내 유닛으로 이동" 버튼을 눌러주세요.' });
 
   // 연결 해제 이벤트 처리
   socket.on('disconnect', () => {

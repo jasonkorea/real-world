@@ -72,7 +72,6 @@ async function initMap() {
       mainPanel.addChat(message);
     } else if (message.type === "move") {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
-      mainPanel.addChat({ sender: message.sender, message: "님이 이동했습니다." });
       console.log("moving unit :", unit);
       if (unit) {
         console.log("unit 있음", message);

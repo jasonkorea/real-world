@@ -132,7 +132,7 @@ export default class RealMap {
 
         const controlUI = document.createElement("div");
         controlUI.id = "current-location";
-        controlUI.innerText = "현재 위치로 이동";
+        controlUI.innerText = "내 유닛으로 이동";
         controlUI.style.cursor = "pointer";
         controlUI.style.color = "white";
         controlUI.style.textAlign = "center";
@@ -164,6 +164,8 @@ export default class RealMap {
             return;
         }
         this.map.panTo({ lat: this.position.coords.latitude, lng: this.position.coords.longitude });
+        //set zoom
+        this.map.setZoom(15);
     }
 
     moveCameraToUnit(id) {
