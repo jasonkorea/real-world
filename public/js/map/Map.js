@@ -50,35 +50,47 @@ export default class RealMap {
 
         this.#map.addListener('click', (event) => {
             console.log('clicked!', event);
-            
+
             let unit = this.units.get(this.#userId);
+            let isNew = false;
             if (!unit) {
-                console.log("unit이 없어서 생성");
+                isNew = true;
+                console.log("unit이 없어서 생성. 단지 생성 요청하는 용도");
                 unit = new this.UnitOveray({
                     googleId: this.#userId,
-                    lat: event.latLng.toJSON().lat,
-                    lng: event.latLng.toJSON().lng,
-                    size: 10,
-                    speed: 200,
-                    image: "../resources/pika.png"
+                    startPosition: event.latLng.toJSON(),
+                    destinationPosition: event.latLng.toJSON(),
+                    size: 100,
+                    speed: 2000,
+                    image: "../resources/pika.png",
+                    startTime: Date.now()
                 });
             }
 
-            unit.destinationPosition = event.latLng.toJSON(); // 목적지가 갱신되는 이유
-            console.log("목적지 갱신", unit.destinationPosition);
 
+            const startPosition = { lat: unit.getCurrentCenter().lat(), lng: unit.getCurrentCenter().lng() };
+            console.log(startPosition);
             Socket.getInstance().sendMessage({
-              "type": "move",
-              "sender": this.#userId,
-              "unitInfo": {
-                "startPosition": unit.startPosition,
-                "destinationPosition": unit.destinationPosition,
-                "image": unit.image,
-                "size": unit.size,
-                "speed": unit.speed
-              }
+                "type": "move",
+                "sender": this.#userId,
+                "unitInfo": {
+                    "startPosition": isNew ? event.latLng.toJSON() : startPosition,
+                    "destinationPosition": event.latLng.toJSON(),
+                    "image": unit.image,
+                    "size": unit.size,
+                    "speed": unit.speed,
+                    "startTime": Date.now()
+                }
             });
-          });
+
+        });
+    }
+
+    getCurrentUTCTimeMillis() {
+        const now = new Date(); // 현재 시간
+        const utcMillis = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
+                                   now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
+        return utcMillis;
     }
 
     #updateLocation(position) {
@@ -112,32 +124,34 @@ export default class RealMap {
         if (!this.map || !this.map.controls) {
             return;
         }
-    
+
         const controlDiv = document.createElement("div");
         controlDiv.className = "btn btn-primary";
         controlDiv.style.margin = "10px";
         controlDiv.style.padding = "10px";
-    
+
         const controlUI = document.createElement("div");
         controlUI.id = "current-location";
         controlUI.innerText = "현재 위치로 이동";
         controlUI.style.cursor = "pointer";
         controlUI.style.color = "white";
         controlUI.style.textAlign = "center";
-    
+
         controlDiv.appendChild(controlUI);
-    
+
         controlUI.addEventListener("click", () => {
-            this.moveToCurrentPosition();
+            //this.moveToCurrentPosition();
+            this.moveCameraToUnit(this.#userId);
         });
         this.map.controls[google.maps.ControlPosition.RIGHT_TOP].push(controlDiv);
     }
 
     addUnit(unitInfo) {
+        console.log("----------------- unit.id : ", unitInfo.googleId);
         const unit = new this.UnitOveray(unitInfo);
         this.units.set(unit.id, unit);
         unit.setMap(this.map);
-        unit.move(unitInfo.lat, unitInfo.lng);
+        unit.move(unitInfo.startPosition, unitInfo.destinationPosition, unitInfo.startTime);
         return unit;
     }
 
@@ -152,10 +166,18 @@ export default class RealMap {
         this.map.panTo({ lat: this.position.coords.latitude, lng: this.position.coords.longitude });
     }
 
+    moveCameraToUnit(id) {
+        this.map.panTo(this.units.get(this.#userId).getCurrentCenter());
+    }
+
     moveUnit(message) {
         const unit = this.units.get(message.sender);
+        console.log(unit);
+        console.log('move unit startTime : ', message.unitInfo.startTime);
+        //print now
+        console.log('현재 시간 :', Date.now());
         if (unit) {
-            unit.move(unit.destinationPosition.lat, unit.destinationPosition.lng);
+            unit.move(message.unitInfo.startPosition, message.unitInfo.destinationPosition, message.unitInfo.startTime);
         }
     }
 

@@ -59,11 +59,12 @@ var sslOptions = {
 var server = https.createServer(sslOptions, app);
 const io = socketio(server);
 
+//clear all units
+//dbm.clearAllUnits();
+  
+
 // 클라이언트 연결 이벤트 처리
 io.on('connection', (socket) => {
-
-  //clear all units
-  //dbm.clearAllUnits();
 
   console.log('A user connected');
   socket.emit('message', { type: 'notice', sender: 'server', message: 'Welcome to the Real World!' });
@@ -78,13 +79,20 @@ io.on('connection', (socket) => {
     console.log('Received', msg);
     if (msg.type === 'move') {
       const freshUnit = await dbm.createOrUpdateUnit(msg);
-      console.log('freshUnit', freshUnit);
+      console.log('freshUnit : id', freshUnit.id);
+      const startLatString = msg.unitInfo.startPosition.lat;
+      const startLngString = msg.unitInfo.startPosition.lng;
+      const startPosition = { lat: parseFloat(startLatString), lng: parseFloat(startLngString) };
+      const destLatString = msg.unitInfo.destinationPosition.lat;
+      const destLngString = msg.unitInfo.destinationPosition.lng;
+      const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
+      
       const response = {
         type: 'move',
         sender: msg.sender,
         unitInfo: {
-          startPosition: freshUnit.startPosition,
-          destinationPosition: freshUnit.destinationPosition,
+          startPosition: startPosition,
+          destinationPosition: destinationPosition,
           size: freshUnit.size,
           speed: freshUnit.speed,
           image: freshUnit.image,
@@ -94,23 +102,30 @@ io.on('connection', (socket) => {
       io.emit('message', response);
     } else if (msg.type === 'chat') {
       io.emit('message', msg);
-    } else if (msg.type === 'visibilitychange') {
-      // 메시지를 받은 클라이언트에게만 메시지를 전송
-      socket.emit('message', {
-        type: 'updateAllClients',
-        sender: 'server',
-        message: msg.visibility
-      });
-    } else if (msg.type === 'requestInitialData') {
+    } else if (msg.type === 'requestInitialData' ||
+      (msg.type === 'visibilitychange' && msg.visibility === 'visible')) {
       const units = await dbm.getAllUnits();
-      console.log('units', units);
+      console.log('unitssssss', units);
+
       units.forEach(unit => {
+        if (!unit.startPosition.lat) {
+          console.log('unit.startPosition.lat is null');
+          return;
+        }
+        const startLatString = unit.startPosition.lat.toString();
+        const startLngString = unit.startPosition.lng.toString();
+        const startPosition = { lat: parseFloat(startLatString), lng: parseFloat(startLngString) };
+        const destLatString = unit.destinationPosition.lat.toString();
+        const destLngString = unit.destinationPosition.lng.toString();
+        const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
+        const idString = unit.id.toString();
+
         const response = {
           type: 'move',
-          sender: unit.id,
+          sender: idString,
           unitInfo: {
-            startPosition: unit.startPosition,
-            destinationPosition: unit.destinationPosition,
+            startPosition: startPosition,
+            destinationPosition: destinationPosition,
             size: unit.size,
             speed: unit.speed,
             image: unit.image,

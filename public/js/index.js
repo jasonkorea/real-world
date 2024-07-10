@@ -72,18 +72,21 @@ async function initMap() {
       mainPanel.addChat(message);
     } else if (message.type === "move") {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
+      mainPanel.addChat({ sender: message.sender, message: "님이 이동했습니다." });
+      console.log("moving unit :", unit);
       if (unit) {
-        console.log("unit 있음", message.sender);
+        console.log("unit 있음", message);
         GameMap.getInstance().moveUnit(message);
       } else {
-        console.log("unit 없음", message.sender);
+        console.log("unit 없음", message);
         addUnit({
           id: message.sender,
-          lat: message.unitInfo.startPosition.lat,
-          lng: message.unitInfo.startPosition.lng,
-          size: 10,
-          speed: 200,
-          image: '../resources/pika.png'
+          startPosition: message.unitInfo.startPosition,
+          destinationPosition: message.unitInfo.destinationPosition,
+          size: 100,
+          speed: 2000,
+          image: '../resources/pika.png',
+          startTime: message.unitInfo.startTime
         });
       }
     } else if (message.type === "notice") {
@@ -114,19 +117,22 @@ async function initMap() {
   }
 
   function addUnit(info) {
-    const lat = info.lat;
-    const lng = info.lng;
+    const startPosition = info.startPosition;
+    const destinationPosition = info.destinationPosition;
     const size = info.size;
     const speed = info.speed;
     const image = info.image;
 
+    console.log("startPosition lat lng = ", startPosition.lat, startPosition.lng);
+    console.log("destinationPosition lat lng = ", destinationPosition.lat, destinationPosition.lng);
     const unit = GameMap.getInstance().addUnit({
-      "googleId": user.googleId,
-      "lat": lat,
-      "lng": lng,
+      "googleId": info.id,
+      "startPosition": { lat: startPosition.lat, lng: startPosition.lng },
+      "destinationPosition": { lat: destinationPosition.lat, lng: destinationPosition.lng },
       "size": size,
       "speed": speed,
       "image": image,
+      "startTime": info.startTime
     });
     GameTimer.getInstance().addOverlay(unit);
     
