@@ -111,16 +111,11 @@ export default function createUnitOverlayClass() {
                 let degreeDifference = this.degree - currentDegree;
                 // 차이를 -180과 180 사이의 값으로 조정합니다.
                 degreeDifference += (degreeDifference > 180) ? -360 : (degreeDifference < -180) ? 360 : 0;
-            
+
                 // 최종 회전 각도를 계산합니다.
                 const finalDegree = currentDegree + degreeDifference;
-            
-                // Calculate the duration based on the degree difference.
-                // Assuming 0.5s is the base duration for 180 degrees rotation.
-                const baseDuration = 0.5; // seconds
-                const duration = Math.abs(degreeDifference) / 180 * baseDuration;
-            
-                this.div.style.transition = `transform ${duration}s ease-out`;
+
+                this.div.style.transition = 'transform 0.5s ease-out';
                 this.div.style.transform = `rotate(${finalDegree}deg)`;
             }
         }
