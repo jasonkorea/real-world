@@ -160,6 +160,12 @@ export default function createUnitOverlayClass() {
             this.#updateOverlayPosition(currentLatLng);
 
             this.draw();
+
+            // 마커의 위치를 실시간으로 업데이트합니다.
+            if (this.marker) {
+                // 마커의 위치를 업데이트합니다.
+                this.marker.setPosition(this.getCurrentCenter());
+            }
         }
 
         #hasReachedDestination(currentLatLng) {
@@ -226,6 +232,29 @@ export default function createUnitOverlayClass() {
             }
 
             this.#moving = true;
+
+            // 마커의 위치를 실시간으로 업데이트합니다.
+            if (this.marker) {
+                // 마커의 위치를 업데이트합니다.
+                this.marker.setPosition(this.getCurrentCenter());
+            }
+        }
+
+        showMarker() {
+            if (!this.marker) {
+                this.marker = new google.maps.Marker({
+                    position: this.getCurrentCenter(),
+                    map: this.map,
+                    // 마커에 대한 추가 설정 (예: 아이콘)을 여기에 추가할 수 있습니다.
+                });
+            }
+        }
+
+        hideMarker() {
+            if (this.marker) {
+                this.marker.setMap(null);
+                this.marker = null;
+            }
         }
     }
 }

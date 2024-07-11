@@ -20,6 +20,7 @@ export default class RealMap {
         this.units = new Map();
         this.UnitOveray = UnitOverlay();
         RealMap.instance = this;
+        this.toggleUnitDisplayBasedOnZoom();
     }
 
 
@@ -180,6 +181,24 @@ export default class RealMap {
         if (unit) {
             unit.move(message.unitInfo.startPosition, message.unitInfo.destinationPosition, message.unitInfo.startTime);
         }
+    }
+
+    toggleUnitDisplayBasedOnZoom() {
+        const zoomThreshold = 15; // 줌 레벨 임계값, 이 값은 조정 가능
+        this.map.addListener('zoom_changed', () => {
+            const currentZoom = this.map.getZoom();
+            if (currentZoom < zoomThreshold) {
+                // 줌 레벨이 임계값 아래일 때
+                this.units.forEach(unit => {
+                    unit.showMarker();
+                });
+            } else {
+                // 줌 레벨이 임계값 이상일 때
+                this.units.forEach(unit => {
+                    unit.hideMarker();
+                });
+            }
+        });
     }
 
     static getInstance() {
