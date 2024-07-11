@@ -168,7 +168,7 @@ export default class RealMap {
 
     moveCameraToUnit(id) {
         this.map.panTo(this.units.get(this.#userId).getCurrentCenter());
-        this.map.setZoom(17);
+        this.map.setZoom(16);
     }
 
     moveUnit(message) {
