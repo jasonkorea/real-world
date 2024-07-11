@@ -62,7 +62,7 @@ export default class RealMap {
                     destinationPosition: event.latLng.toJSON(),
                     size: 100,
                     speed: 1000,
-                    image: "../resources/pika.png",
+                    image: "../resources/airplane.png",
                     startTime: Date.now()
                 });
             }
@@ -89,7 +89,7 @@ export default class RealMap {
     getCurrentUTCTimeMillis() {
         const now = new Date(); // 현재 시간
         const utcMillis = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
-                                   now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
+            now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
         return utcMillis;
     }
 
@@ -164,12 +164,11 @@ export default class RealMap {
             return;
         }
         this.map.panTo({ lat: this.position.coords.latitude, lng: this.position.coords.longitude });
-        //set zoom
-        this.map.setZoom(15);
     }
 
     moveCameraToUnit(id) {
         this.map.panTo(this.units.get(this.#userId).getCurrentCenter());
+        this.map.setZoom(17);
     }
 
     moveUnit(message) {

@@ -28,14 +28,14 @@ async function initMap() {
   // 구글 맵을 로드한다.
   const { Map } = await google.maps.importLibrary("maps");
   const map = new Map(document.getElementById("map"), {
-    zoom: 20,
+    zoom: 17,
     center: { lat: 37.5665, lng: 126.9780 },
     mapId: "ID_REAL_WORLD",
     disableDoubleClickZoom: true,
     //disable street view
     streetViewControl: false,
     //disable zoom control
-    zoomControl: false,
+    //zoomControl: false,
     //disable map type control
     mapTypeControl: false,
     clickableIcons: false,
@@ -84,7 +84,7 @@ async function initMap() {
           destinationPosition: message.unitInfo.destinationPosition,
           size: 100,
           speed: 1000,
-          image: '../resources/pika.png',
+          image: '../resources/airplane.png',
           startTime: message.unitInfo.startTime
         });
       }

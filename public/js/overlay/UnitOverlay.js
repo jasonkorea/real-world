@@ -8,9 +8,11 @@ export default function createUnitOverlayClass() {
         #moving = true;
         #speed;
         #size;
+        degree;
 
         constructor(info) {
             super();
+            this.degree = 0;
             this.#id = info.googleId;
             this.#size = info.size;
             this.#speed = info.speed;
@@ -101,6 +103,26 @@ export default function createUnitOverlayClass() {
                 this.div.style.width = `${ne.x - sw.x}px`;
                 this.div.style.height = `${sw.y - ne.y}px`;
             }
+
+            if (this.div) {
+                // 현재 div의 회전 각도를 가져옵니다.
+                const currentDegree = parseFloat(this.div.style.transform.replace(/[^\d.]/g, '')) || 0;
+                // 목표 각도와의 차이를 계산합니다.
+                let degreeDifference = this.degree - currentDegree;
+                // 차이를 -180과 180 사이의 값으로 조정합니다.
+                degreeDifference += (degreeDifference > 180) ? -360 : (degreeDifference < -180) ? 360 : 0;
+            
+                // 최종 회전 각도를 계산합니다.
+                const finalDegree = currentDegree + degreeDifference;
+            
+                // Calculate the duration based on the degree difference.
+                // Assuming 0.5s is the base duration for 180 degrees rotation.
+                const baseDuration = 0.5; // seconds
+                const duration = Math.abs(degreeDifference) / 180 * baseDuration;
+            
+                this.div.style.transition = `transform ${duration}s ease-out`;
+                this.div.style.transform = `rotate(${finalDegree}deg)`;
+            }
         }
 
         onRemove() {
@@ -190,12 +212,15 @@ export default function createUnitOverlayClass() {
         }
 
         move(startPosition, destinationPosition, startTime) {
+            this.degree = google.maps.geometry.spherical.computeHeading(startPosition, destinationPosition);
+            // console.log("degree", degree);
+
             console.log("move!!!!!!!!!!!!!!", startPosition, destinationPosition, startTime);
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
 
-            
+
             console.log("startTime", startTime);
             console.log("now", Date.now());
             //둘 차이 1자리 소수점 초단위 출력
