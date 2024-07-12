@@ -20,6 +20,14 @@ export default class Socket {
         this.#socket.emit("message", message);
     }
 
+    async sendMessageAwait(message) {
+        return new Promise((resolve) => {
+            this.#socket.emit("message", message, (response) => {
+                resolve(response);
+            });
+        });
+    }
+
     disconnect() {
         this.socket.disconnect();
     }

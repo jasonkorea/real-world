@@ -65,7 +65,7 @@ const io = socketio(server);
 
 //clear all units
 dbm.clearAllUnits();
-  
+
 
 
 
@@ -85,7 +85,12 @@ io.on('connection', (socket) => {
   // 클라이언트로부터 메시지 받기
   socket.on('message', async (msg) => {
     console.log('Received', msg);
-    if (msg.type === 'move') {
+    if (msg.type === 'serverTime') {
+      // 서버 시간과 클라이언트 시간의 차이를 계산
+      const clientTime = Date.now();
+      const serverTimeOffset = message.currentTime - clientTime;
+      GameTimer.getInstance().setServerTimeOffset(serverTimeOffset);
+    } else if (msg.type === 'move') {
       const freshUnit = await dbm.createOrUpdateUnit(msg);
       console.log('freshUnit : id', freshUnit.id);
       const response = {
@@ -122,6 +127,8 @@ io.on('connection', (socket) => {
         const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
         const idString = unit.id.toString();
 
+        io.emit('serverTime', { currentTime: Date.now() });
+
         const response = {
           type: 'move',
           sender: idString,
@@ -137,6 +144,8 @@ io.on('connection', (socket) => {
         };
         socket.emit('message', response);
       });
+    } else if (msg.type == 'serverTime') {
+      socket.emit('message', { type: 'serverTime', data: Date.now() });
     }
   });
 });

@@ -2,6 +2,8 @@
 import GPS from "../location/GPS.js";
 import UnitOverlay from "../overlay/UnitOverlay.js";
 import Socket from "../socket/Socket.js";
+import GlobalTimer from "../anim/GameTimer.js";
+
 export default class RealMap {
     #map;
     get map() {
@@ -49,18 +51,20 @@ export default class RealMap {
 
         this._addControl();
 
-        this.#map.addListener('click', (event) => {
+        this.#map.addListener('click', async (event) => {
             console.log('clicked!', event);
 
             let unit = this.units.get(this.#userId);
+            let center;
             let isNew = !unit;
             if (!unit) {
                 isNew = true;
                 console.log("unit이 없어서 생성. 단지 생성 요청하는 용도");
+            } else {
+                center = await unit.getCurrentCenter();
+                console.log("unit이 있어서 이동. 현재 위치 : ", center);
             }
-
-
-            const startPosition = unit ? { lat: unit.getCurrentCenter().lat(), lng: unit.getCurrentCenter().lng() } : event.latLng.toJSON();
+            const startPosition = unit ? { lat: center.lat(), lng: center.lng() } : event.latLng.toJSON();
             console.log(startPosition);
             Socket.getInstance().sendMessage({
                 "type": "move",
@@ -70,7 +74,7 @@ export default class RealMap {
                     "destinationPosition": event.latLng.toJSON(),
                     "image": "../resources/airplane.png",
                     "size": 100,
-                    "speed": 1000,
+                    "speed": 100,
                 }
             });
 
@@ -157,9 +161,9 @@ export default class RealMap {
         this.map.panTo({ lat: this.position.coords.latitude, lng: this.position.coords.longitude });
     }
 
-    moveCameraToUnit(id) {
+    async moveCameraToUnit(id) {
         console.log(this.units.get(id));
-        this.map.panTo(this.units.get(id).getCurrentCenter());
+        this.map.panTo(await this.units.get(id).getCurrentCenter());
         this.map.setZoom(16);
     }
 
@@ -168,7 +172,7 @@ export default class RealMap {
         console.log(unit);
         console.log('move unit startTime : ', message.unitInfo.startTime);
         //print now
-        console.log('현재 시간 :', Date.now());
+        console.log('현재 시간 :', GlobalTimer.getInstance().getServerTime());
         if (unit) {
             unit.move(message.unitInfo.startPosition, message.unitInfo.destinationPosition, message.unitInfo.startTime);
         }

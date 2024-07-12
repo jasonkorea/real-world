@@ -4,9 +4,11 @@ export default class GameTimer {
 
     overays = [];
     instance;
+    serverTimeOffset;
 
     constructor() {
         console.log('GameTimer constructor');
+        this.serverTimeOffset = 0;
         if (GameTimer.instance) {
             return GameTimer.instance;
         }
@@ -17,6 +19,14 @@ export default class GameTimer {
         GameTimer.instance = this;
     }
 
+    setServerTimeOffset(offset) {
+        this.serverTimeOffset = offset;
+    }
+
+    getServerTime() {
+        return performance.now() + this.serverTimeOffset;
+    }
+        
     _handleMessage(event) {
         if (event.data.type === 'tick') {
             this.update(event.data.deltaTime);

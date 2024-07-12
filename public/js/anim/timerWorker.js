@@ -1,4 +1,3 @@
-// timerWorker.js
 let startTime = null;
 let lastFrameTime = null;
 let interval = 1000 / 60; // 60fps

@@ -1,3 +1,5 @@
+import GlobalTimer from "../anim/GameTimer.js";
+
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
         #bounds;
@@ -20,7 +22,7 @@ export default function createUnitOverlayClass() {
             this.#startPosition = new google.maps.LatLng(info.startPosition.lat, info.startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(info.destinationPosition.lat, info.destinationPosition.lng);
             this.calculatedSpeed = info.speed * 1000 / 3600;
-            this.#startTime = info.startTime || Date.now();
+            this.#startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
         }
 
@@ -115,7 +117,7 @@ export default function createUnitOverlayClass() {
                 // 최종 회전 각도를 계산합니다.
                 const finalDegree = currentDegree + degreeDifference;
 
-                this.div.style.transition = 'transform 0.3s ease-out';
+                this.div.style.transition = 'transform 2s ease-out';
                 this.div.style.transform = `rotate(${finalDegree}deg)`;
             }
         }
@@ -145,25 +147,19 @@ export default function createUnitOverlayClass() {
 
         updateBounds() {
             if (!this.#moving) return;
-            //console.log("updateBounds");
             const elapsedTime = this.#getElapsedTimeInSeconds();
             const distanceTraveled = this.#calculateDistanceTraveled(elapsedTime);
             const currentLatLng = this.#getCurrentPosition(this.#startPosition, this.#destinationPosition, distanceTraveled);
             if (!currentLatLng || this.#hasReachedDestination(currentLatLng)) {
                 console.log("Reached destination", currentLatLng.lat(), currentLatLng.lng(), this.#destinationPosition.lat(), this.#destinationPosition.lng());
-                //update bounds
                 this.#setBounds(this.#destinationPosition.lat(), this.#destinationPosition.lng(), this.#size);
                 this.draw();
                 this.#moving = false;
                 return;
             }
             this.#updateOverlayPosition(currentLatLng);
-
             this.draw();
-
-            // 마커의 위치를 실시간으로 업데이트합니다.
             if (this.marker) {
-                // 마커의 위치를 업데이트합니다.
                 this.marker.setPosition(this.getCurrentCenter());
             }
         }
@@ -174,7 +170,7 @@ export default function createUnitOverlayClass() {
 
         #getElapsedTimeInSeconds() {
             // console.log("getElapsedTimeInSeconds", (Date.now() - this.#startTime) / 1000);
-            return (Date.now() - this.#startTime) / 1000;
+            return (GlobalTimer.getInstance().getServerTime() - this.#startTime) / 1000;
         }
 
         #calculateDistanceTraveled(elapsedTime) {
@@ -186,27 +182,21 @@ export default function createUnitOverlayClass() {
         }
 
         getCurrentCenter() {
-            console.log("getCurrentCenter");
-            //this.updateBounds();
-            return this.#bounds.getCenter();
+            const elapsedTime = this.#getElapsedTimeInSeconds();
+            const distanceTraveled = this.#calculateDistanceTraveled(elapsedTime);
+            const currentLatLng = this.#getCurrentPosition(this.#startPosition, this.#destinationPosition, distanceTraveled);
+            return currentLatLng;
         }
 
         #getCurrentPosition(start, end, distance) {
-            //            console.log("start, end, distance", start, end, distance);
-
             if (!(start instanceof google.maps.LatLng) || !(end instanceof google.maps.LatLng)) {
                 console.error("start or end is not a google.maps.LatLng object");
-                return null; // Or handle error appropriately
+                return null;
             }
-            // console.log("start lat lng", start.lat(), start.lng());
-            // console.log("end lat lng", end.lat(), end.lng());
-
             const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(start, end);
             if (distance >= totalDistance) {
-                console.log("distance, totalDistance", distance, totalDistance);
                 return end;
             }
-
             const ratio = distance / totalDistance;
             const lat = start.lat() + (end.lat() - start.lat()) * ratio;
             const lng = start.lng() + (end.lng() - start.lng()) * ratio;
@@ -220,18 +210,17 @@ export default function createUnitOverlayClass() {
             console.log("move!!!!!!!!!!!!!!", startPosition, destinationPosition, startTime);
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
-            this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
 
 
             console.log("startTime", startTime);
-            console.log("now", Date.now());
-            //둘 차이 1자리 소수점 초단위 출력
-            if ((Date.now() - startTime) / 1000 < 0) {
-                this.#startTime = Date.now();
+            console.log("now", GlobalTimer.getInstance().getServerTime());
+            if ((GlobalTimer.getInstance().getServerTime() - startTime) < 0) {
+                this.#startTime = GlobalTimer.getInstance().getServerTime();
             } else {
                 this.#startTime = startTime;
             }
 
+            this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
             this.#moving = true;
 
             // 마커의 위치를 실시간으로 업데이트합니다.

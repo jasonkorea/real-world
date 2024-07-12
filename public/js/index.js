@@ -65,6 +65,12 @@ async function initMap() {
     Socket.getInstance().sendMessage(message);
   });
 
+
+  //1초에 한번씩 현재 client 시간 출력
+  setInterval(() => {
+    mainPanel.addChat({ sender: "client", message: `${Date.now()}` });
+  }, 1000);
+
   Socket.getInstance().addListener((message) => {
     console.log("from server :", message);
     if (message.type === "chat") {
@@ -82,8 +88,8 @@ async function initMap() {
           id: message.sender,
           startPosition: message.unitInfo.startPosition,
           destinationPosition: message.unitInfo.destinationPosition,
-          size: 100,
-          speed: 1000,
+          size: message.unitInfo.size,
+          speed: message.unitInfo.speed,
           image: '../resources/airplane.png',
           startTime: message.unitInfo.startTime
         });
