@@ -22,7 +22,12 @@ export default function createUnitOverlayClass() {
             this.#startPosition = new google.maps.LatLng(info.startPosition.lat, info.startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(info.destinationPosition.lat, info.destinationPosition.lng);
             this.calculatedSpeed = info.speed * 1000 / 3600;
-            this.#startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
+            this.#startTime = info.startTime ||  GlobalTimer.getInstance().getServerTime();
+            if (info.startTime) {
+                console.log("infoi.startTime exists!!!", info.startTime);
+            } else {
+                console.log("infoi.startTime does not exist!!!", info.startTime);
+            }
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
         }
 
@@ -204,7 +209,6 @@ export default function createUnitOverlayClass() {
         }
 
         move(startPosition, destinationPosition, startTime) {
-            console.log("move", startPosition, destinationPosition, startTime);
             this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
 
             console.log("move!!!!!!!!!!!!!!", startPosition, destinationPosition, startTime);
