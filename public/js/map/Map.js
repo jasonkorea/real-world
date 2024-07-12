@@ -74,7 +74,7 @@ export default class RealMap {
                     "destinationPosition": event.latLng.toJSON(),
                     "image": "../resources/airplane.png",
                     "size": 100,
-                    "speed": 100,
+                    "speed": 400,
                 }
             });
 

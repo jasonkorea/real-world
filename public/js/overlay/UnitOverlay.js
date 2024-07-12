@@ -117,7 +117,7 @@ export default function createUnitOverlayClass() {
                 // 최종 회전 각도를 계산합니다.
                 const finalDegree = currentDegree + degreeDifference;
 
-                this.div.style.transition = 'transform 2s ease-out';
+                this.div.style.transition = 'transform 1s ease-out';
                 this.div.style.transform = `rotate(${finalDegree}deg)`;
             }
         }
