@@ -187,6 +187,7 @@ export default function createUnitOverlayClass() {
 
         getCurrentCenter() {
             console.log("getCurrentCenter");
+            //this.updateBounds();
             return this.#bounds.getCenter();
         }
 
@@ -213,8 +214,8 @@ export default function createUnitOverlayClass() {
         }
 
         move(startPosition, destinationPosition, startTime) {
-            this.degree = google.maps.geometry.spherical.computeHeading(startPosition, destinationPosition);
-            // console.log("degree", degree);
+            console.log("move", startPosition, destinationPosition, startTime);
+            this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
 
             console.log("move!!!!!!!!!!!!!!", startPosition, destinationPosition, startTime);
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);

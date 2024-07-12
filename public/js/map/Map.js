@@ -53,23 +53,14 @@ export default class RealMap {
             console.log('clicked!', event);
 
             let unit = this.units.get(this.#userId);
-            let isNew = false;
+            let isNew = !unit;
             if (!unit) {
                 isNew = true;
                 console.log("unit이 없어서 생성. 단지 생성 요청하는 용도");
-                unit = new this.UnitOveray({
-                    googleId: this.#userId,
-                    startPosition: event.latLng.toJSON(),
-                    destinationPosition: event.latLng.toJSON(),
-                    size: 100,
-                    speed: 1000,
-                    image: "../resources/airplane.png",
-                    startTime: Date.now()
-                });
             }
 
 
-            const startPosition = { lat: unit.getCurrentCenter().lat(), lng: unit.getCurrentCenter().lng() };
+            const startPosition = unit ? { lat: unit.getCurrentCenter().lat(), lng: unit.getCurrentCenter().lng() } : event.latLng.toJSON();
             console.log(startPosition);
             Socket.getInstance().sendMessage({
                 "type": "move",
@@ -77,10 +68,9 @@ export default class RealMap {
                 "unitInfo": {
                     "startPosition": isNew ? event.latLng.toJSON() : startPosition,
                     "destinationPosition": event.latLng.toJSON(),
-                    "image": unit.image,
-                    "size": unit.size,
-                    "speed": unit.speed,
-                    "startTime": Date.now()
+                    "image": "../resources/airplane.png",
+                    "size": 100,
+                    "speed": 1000,
                 }
             });
 
@@ -168,7 +158,8 @@ export default class RealMap {
     }
 
     moveCameraToUnit(id) {
-        this.map.panTo(this.units.get(this.#userId).getCurrentCenter());
+        console.log(this.units.get(id));
+        this.map.panTo(this.units.get(id).getCurrentCenter());
         this.map.setZoom(16);
     }
 

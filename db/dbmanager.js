@@ -3,52 +3,58 @@ const Unit = require('../models/Unit');
 const User = require('../models/user');
 const Decimal128 = mongoose.Types.Decimal128;
 
-exports.createOrUpdateUnit = async (unit) => {
+exports.createOrUpdateUnit = async (msg) => {
     try {
 
-        const user = await User.findOne({ googleId: unit.sender });
+        const user = await User.findOne({ googleId: msg.sender });
         if (!user) {
             console.log('사용자를 찾을 수 없습니다.');
             throw new Error('사용자를 찾을 수 없습니다.');
         }
         console.log('사용자를 찾았습니다.');
         console.log(user);
-
+        const id = msg.sender;
+        const startLatString = msg.unitInfo.startPosition.lat.toString();
+        const startLngString = msg.unitInfo.startPosition.lng.toString();
+        const startPosition = { lat:startLatString, lng: startLngString };
+        const destLatString = msg.unitInfo.destinationPosition.lat.toString();
+        const destLngString = msg.unitInfo.destinationPosition.lng.toString();
+        const destinationPosition = { lat: destLatString, lng: destLngString };
+        const size = msg.unitInfo.size;
+        const speed = msg.unitInfo.speed;
+        const image = msg.unitInfo.image;
+        const startTime = msg.unitInfo.startTime ? msg.unitInfo.startTime : Date.now();
 
         //let existingUnit = await Unit.findOne({ id: unit.sender });
         let existingUnit = user.unit ? await Unit.findById(user.unit) : null;
         if (existingUnit) {
-            console.log(`유닛을 찾았습니다. startTime : ${unit.unitInfo.startTime}`);
-            existingUnit.size = unit.unitInfo.size;
-            existingUnit.speed = unit.unitInfo.speed;
-            existingUnit.image = unit.unitInfo.image;
-            existingUnit.startPosition = unit.unitInfo.startPosition;
-            existingUnit.destinationPosition = unit.unitInfo.destinationPosition;
-            existingUnit.startTime = Date.now();
-            //현재 시간과 startTime을 함께 출력
-            console.log('현재 시간:', Date.now());
+            existingUnit.id = id;
+            existingUnit.size = size;
+            existingUnit.speed = speed;
+            existingUnit.image = image;
+            // 소수점 잃지 말고 Decimal128로 저장
+            existingUnit.startPosition = { lat: Decimal128.fromString(startLatString), lng: Decimal128.fromString(startLngString) };
+            existingUnit.destinationPosition = { lat: Decimal128.fromString(destLatString), lng: Decimal128.fromString(destLngString) };
+            existingUnit.startTime = startTime;
+
             console.log('startTime:', existingUnit.startTime);
-            // if (unit.unitInfo.startTime) {
-            //     existingUnit.startTime = unit.unitInfo.startTime;
-            // } else {
-            //     existingUnit.startTime = Date.now();
-            // }
+            console.log(`유닛을 찾았습니다. startTime : ${startTime}`);
             // 업데이트된 유닛을 저장합니다.
             console.log('유닛을 저장합니다.');
             await existingUnit.save();
             console.log('유닛이 업데이트되었습니다.');
         } else {
             // 새 유닛을 생성합니다.
-            console.log('유닛을 찾지 못했습니다. 새로 생성합니다. sender :', unit.sender);
-            console.log('unit:', unit);
+            console.log('유닛을 찾지 못했습니다. 새로 생성합니다. sender :', msg.sender);
+            console.log('unit:', msg);
             const newUnit = new Unit({
-                id: unit.sender,
-                size: unit.unitInfo.size,
-                speed: unit.unitInfo.speed,
-                image: unit.unitInfo.image,
-                startPosition: unit.unitInfo.startPosition,
-                destinationPosition: unit.unitInfo.destinationPosition,
-                startTime: unit.unitInfo.startTime
+                id: id,
+                size: size,
+                speed: speed,
+                image: image,
+                startPosition: { lat: Decimal128.fromString(startLatString), lng: Decimal128.fromString(startLngString) },
+                destinationPosition: { lat: Decimal128.fromString(destLatString), lng: Decimal128.fromString(destLngString) },
+                startTime: startTime
             });
             // show newUnit
             console.log('newUnit:', newUnit);

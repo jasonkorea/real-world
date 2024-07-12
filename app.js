@@ -59,9 +59,17 @@ var sslOptions = {
 var server = https.createServer(sslOptions, app);
 const io = socketio(server);
 
+
+
+
+
 //clear all units
-//dbm.clearAllUnits();
+dbm.clearAllUnits();
   
+
+
+
+
 
 // 클라이언트 연결 이벤트 처리
 io.on('connection', (socket) => {
@@ -80,19 +88,13 @@ io.on('connection', (socket) => {
     if (msg.type === 'move') {
       const freshUnit = await dbm.createOrUpdateUnit(msg);
       console.log('freshUnit : id', freshUnit.id);
-      const startLatString = msg.unitInfo.startPosition.lat;
-      const startLngString = msg.unitInfo.startPosition.lng;
-      const startPosition = { lat: parseFloat(startLatString), lng: parseFloat(startLngString) };
-      const destLatString = msg.unitInfo.destinationPosition.lat;
-      const destLngString = msg.unitInfo.destinationPosition.lng;
-      const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
-      
       const response = {
         type: 'move',
         sender: msg.sender,
         unitInfo: {
-          startPosition: startPosition,
-          destinationPosition: destinationPosition,
+          id: freshUnit.id,
+          startPosition: { lat: parseFloat(freshUnit.startPosition.lat), lng: parseFloat(freshUnit.startPosition.lng) },
+          destinationPosition: { lat: parseFloat(freshUnit.destinationPosition.lat), lng: parseFloat(freshUnit.destinationPosition.lng) },
           size: freshUnit.size,
           speed: freshUnit.speed,
           image: freshUnit.image,
