@@ -4,7 +4,7 @@ export default class GameTimer {
 
     overays = [];
     instance;
-    serverTimeOffset;
+    serverTimeOffset = 0;
 
     constructor() {
         console.log('GameTimer constructor');
@@ -24,7 +24,7 @@ export default class GameTimer {
     }
 
     getServerTime() {
-        return performance.now() + this.serverTimeOffset;
+        return Date.now() + this.serverTimeOffset;
     }
         
     _handleMessage(event) {

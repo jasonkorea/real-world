@@ -219,7 +219,7 @@ export default function createUnitOverlayClass() {
             console.log("startTime", startTime);
             console.log("now", GlobalTimer.getInstance().getServerTime());
             if ((GlobalTimer.getInstance().getServerTime() - startTime) < 0) {
-                this.#startTime = GlobalTimer.getInstance().getServerTime();
+                this.#startTime = startTime;
             } else {
                 this.#startTime = startTime;
             }
