@@ -88,7 +88,7 @@ io.on('connection', (socket) => {
     if (msg.type === 'serverTime') {
       // 서버 시간과 클라이언트 시간의 차이를 계산
       const clientTime = Date.now();
-      const serverTimeOffset = msg.currentTime - clientTime;
+      const serverTimeOffset = message.currentTime - clientTime;
       GameTimer.getInstance().setServerTimeOffset(serverTimeOffset);
     } else if (msg.type === 'move') {
       const freshUnit = await dbm.createOrUpdateUnit(msg);
