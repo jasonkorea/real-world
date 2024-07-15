@@ -78,14 +78,13 @@ async function initMap() {
       mainPanel.addChat(message);
     } else if (message.type === "move") {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
-      console.log("moving unit :", unit);
+    
+      console.log("ServerTime", GameTimer.getInstance().getServerTime());
       if (unit) {
         console.log("unit 있음", message);
         GameMap.getInstance().moveUnit(message);
       } else {
         console.log("unit 없음", message);
-        // serverTime과 clientTime의 차이를 계산
-
         addUnit({
           id: message.sender,
           startPosition: message.unitInfo.startPosition,
