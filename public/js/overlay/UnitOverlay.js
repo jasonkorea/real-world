@@ -234,9 +234,9 @@ export default function createUnitOverlayClass() {
 
 
             console.log("startTime", startTime);
-            MainPanel.getInstance().addChat({ sender: "move()", message: `startTime : ${startTime}` });
+            //MainPanel.getInstance().addChat({ sender: "move()", message: `startTime : ${startTime}` });
             console.log("server time", GlobalTimer.getInstance().getServerTime());
-            MainPanel.getInstance().addChat({ sender: "move()", message: `server time : ${GlobalTimer.getInstance().getServerTime()}` });
+            //MainPanel.getInstance().addChat({ sender: "move()", message: `server time : ${GlobalTimer.getInstance().getServerTime()}` });
             
             if (!clicked) {
                 this.#startTime = GlobalTimer.getInstance().getServerTime();

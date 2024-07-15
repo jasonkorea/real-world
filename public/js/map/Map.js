@@ -54,7 +54,7 @@ export default class RealMap {
 
         this.#map.addListener('click', async (event) => {
             console.log('clicked!', event.latLng.toJSON());
-            MainPanel.getInstance().addChat({sender: "Map(Click)", message: `${event.latLng.toJSON().lat}, ${event.latLng.toJSON().lng}`});
+            //MainPanel.getInstance().addChat({sender: "Map(Click)", message: `${event.latLng.toJSON().lat}, ${event.latLng.toJSON().lng}`});
 
 
             let unit = this.units.get(this.#userId);
@@ -66,7 +66,7 @@ export default class RealMap {
             } else {
                 center = await unit.getCurrentCenter();
                 console.log("unit이 있어서 이동. 현재 위치 : ", center.lat(), center.lng());
-                MainPanel.getInstance().addChat({sender: "Map(current)", message: `${center.lat()}, ${center.lng()}`});
+                //MainPanel.getInstance().addChat({sender: "Map(current)", message: `${center.lat()}, ${center.lng()}`});
             }
             const startPosition = unit ? { lat: center.lat(), lng: center.lng() } : event.latLng.toJSON();
             console.log(startPosition);
