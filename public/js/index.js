@@ -82,6 +82,7 @@ async function initMap() {
       console.log("ServerTime", GameTimer.getInstance().getServerTime());
       if (unit) {
         console.log("unit 있음", message);
+
         GameMap.getInstance().moveUnit(message);
       } else {
         console.log("unit 없음", message);

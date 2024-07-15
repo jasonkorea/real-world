@@ -74,12 +74,28 @@ export default function createUnitOverlayClass() {
             return this.#startTime;
         }
 
+        set startTime(value) {
+            this.#startTime = value;
+        }
+
         get speed() {
             return this.#speed;
         }
 
         get size() {
             return this.#size;
+        }
+
+        set startPosition(value) {
+            this.#startPosition = value;
+        }
+
+        set size(value) {
+            this.#size = value;
+        }
+
+        set speed(value) {
+            this.#speed = value;
         }
 
         onAdd() {

@@ -39,7 +39,7 @@ exports.createOrUpdateUnit = async (msg) => {
                 startTime = msg.unitInfo.startTime;
             }
         } else {
-            console.log('msg.unitInfo.startTime이 없습니다. startTime을 현재 시간으로 설정합니다.');
+            console.log('msg.unitInfo.startTime이 없습니다. startTime을 서버 시간으로 설정합니다.');
             startTime = Date.now();
         }
 

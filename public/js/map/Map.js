@@ -174,6 +174,12 @@ export default class RealMap {
         //print now
         console.log('현재 시간 :', GlobalTimer.getInstance().getServerTime());
         if (unit) {
+            unit.startTime = message.unitInfo.startTime;
+            unit.startPosition = message.unitInfo.startPosition;
+            unit.destinationPosition = message.unitInfo.destinationPosition;
+            unit.size = message.unitInfo.size;
+            unit.speed = message.unitInfo.speed;
+            unit.image = message.unitInfo.image;
             unit.move(message.unitInfo.startPosition, message.unitInfo.destinationPosition, message.unitInfo.startTime);
         }
     }
