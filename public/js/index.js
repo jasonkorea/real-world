@@ -78,7 +78,8 @@ async function initMap() {
       mainPanel.addChat(message);
     } else if (message.type === "move") {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
-    
+      // print startPosition
+      mainPanel.addChat({ sender: "Map", message: `startPosition : ${message.unitInfo.startPosition.lat}, ${message.unitInfo.startPosition.lng}` });
       console.log("ServerTime", GameTimer.getInstance().getServerTime());
       if (unit) {
         console.log("unit 있음", message);

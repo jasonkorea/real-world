@@ -3,6 +3,7 @@ import GPS from "../location/GPS.js";
 import UnitOverlay from "../overlay/UnitOverlay.js";
 import Socket from "../socket/Socket.js";
 import GlobalTimer from "../anim/GameTimer.js";
+import MainPanel from "../control/MainPanel.js";
 
 export default class RealMap {
     #map;
@@ -52,7 +53,9 @@ export default class RealMap {
         this._addControl();
 
         this.#map.addListener('click', async (event) => {
-            console.log('clicked!', event);
+            console.log('clicked!', event.latLng.toJSON());
+            MainPanel.getInstance().addChat({sender: "Map(Click)", message: `${event.latLng.toJSON().lat}, ${event.latLng.toJSON().lng}`});
+
 
             let unit = this.units.get(this.#userId);
             let center;
@@ -62,7 +65,8 @@ export default class RealMap {
                 console.log("unit이 없어서 생성. 단지 생성 요청하는 용도");
             } else {
                 center = await unit.getCurrentCenter();
-                console.log("unit이 있어서 이동. 현재 위치 : ", center);
+                console.log("unit이 있어서 이동. 현재 위치 : ", center.lat(), center.lng());
+                MainPanel.getInstance().addChat({sender: "Map(current)", message: `${center.lat()}, ${center.lng()}`});
             }
             const startPosition = unit ? { lat: center.lat(), lng: center.lng() } : event.latLng.toJSON();
             console.log(startPosition);
@@ -146,7 +150,7 @@ export default class RealMap {
         const unit = new this.UnitOveray(unitInfo);
         this.units.set(unit.id, unit);
         unit.setMap(this.map);
-        unit.move(unitInfo.startPosition, unitInfo.destinationPosition, unitInfo.startTime);
+        unit.move(unitInfo.startPosition, unitInfo.destinationPosition, unitInfo.startTime, true);
         return unit;
     }
 
@@ -180,7 +184,7 @@ export default class RealMap {
             unit.size = message.unitInfo.size;
             unit.speed = message.unitInfo.speed;
             unit.image = message.unitInfo.image;
-            unit.move(message.unitInfo.startPosition, message.unitInfo.destinationPosition, message.unitInfo.startTime);
+            unit.move(message.unitInfo.startPosition, message.unitInfo.destinationPosition, message.unitInfo.startTime, false);
         }
     }
 

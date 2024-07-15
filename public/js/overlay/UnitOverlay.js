@@ -1,4 +1,6 @@
+import GameTimer from "../anim/GameTimer.js";
 import GlobalTimer from "../anim/GameTimer.js";
+import MainPanel from "../control/MainPanel.js";
 
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
@@ -223,7 +225,7 @@ export default function createUnitOverlayClass() {
             return new google.maps.LatLng(lat, lng);
         }
 
-        move(startPosition, destinationPosition, startTime) {
+        move(startPosition, destinationPosition, startTime, clicked) {
             this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
 
             console.log("move!!!!!!!!!!!!!!", startPosition, destinationPosition, startTime);
@@ -232,9 +234,16 @@ export default function createUnitOverlayClass() {
 
 
             console.log("startTime", startTime);
+            MainPanel.getInstance().addChat({ sender: "move()", message: `startTime : ${startTime}` });
             console.log("server time", GlobalTimer.getInstance().getServerTime());
+            MainPanel.getInstance().addChat({ sender: "move()", message: `server time : ${GlobalTimer.getInstance().getServerTime()}` });
             
-            this.#startTime = startTime;
+            if (!clicked) {
+                this.#startTime = GlobalTimer.getInstance().getServerTime();
+            } else {
+                this.#startTime = startTime;
+            }
+
 
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
             this.#moving = true;
