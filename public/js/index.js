@@ -66,6 +66,8 @@ async function initMap() {
   });
 
 
+  Socket.getInstance().sendMessage({type: 'serverTime'});
+
   //1초에 한번씩 현재 client 시간 출력
   // setInterval(() => {
   //   mainPanel.addChat({ sender: "client", message: `${Date.now()}` });
@@ -78,9 +80,6 @@ async function initMap() {
       mainPanel.addChat(message);
     } else if (message.type === "move") {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
-      // print startPosition
-      //mainPanel.addChat({ sender: "Map", message: `startPosition : ${message.unitInfo.startPosition.lat}, ${message.unitInfo.startPosition.lng}` });
-      console.log("ServerTime", GameTimer.getInstance().getServerTime());
       if (unit) {
         console.log("unit 있음", message);
 
@@ -99,6 +98,8 @@ async function initMap() {
       }
     } else if (message.type === "notice") {
       mainPanel.addChat(message);
+    } else if (message.type = 'serverTime') {
+      GameTimer.getInstance().setServerTimeOffset(message.data - Date.now());
     }
   });
 

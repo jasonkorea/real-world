@@ -75,6 +75,7 @@ dbm.clearAllUnits();
 io.on('connection', (socket) => {
 
   console.log('A user connected');
+  socket.emit('serverTime', { currentTime: Date.now() });
   socket.emit('message', { type: 'notice', sender: 'server', message: '현재 위치를 인식중입니다. 인식 후 "내 유닛으로 이동" 버튼을 눌러주세요.' });
 
   // 연결 해제 이벤트 처리
@@ -86,10 +87,7 @@ io.on('connection', (socket) => {
   socket.on('message', async (msg) => {
     console.log('Received', msg);
     if (msg.type === 'serverTime') {
-      // 서버 시간과 클라이언트 시간의 차이를 계산
-      const clientTime = Date.now();
-      const serverTimeOffset = message.currentTime - clientTime;
-      GameTimer.getInstance().setServerTimeOffset(serverTimeOffset);
+      socket.emit('message', { type: 'serverTime', data: Date.now() });
     } else if (msg.type === 'move') {
       const freshUnit = await dbm.createOrUpdateUnit(msg);
       console.log('freshUnit : id', freshUnit.id);

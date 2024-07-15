@@ -23,7 +23,7 @@ export default function createUnitOverlayClass() {
             this.image = info.image;
             this.#startPosition = new google.maps.LatLng(info.startPosition.lat, info.startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(info.destinationPosition.lat, info.destinationPosition.lng);
-            this.calculatedSpeed = info.speed * 1000 / 3600;
+            this.calculatedSpeed = info.speed / 3600;
             this.#startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
             if (info.startTime) {
                 console.log("infoi.startTime exists!!!", info.startTime);
@@ -192,7 +192,7 @@ export default function createUnitOverlayClass() {
         }
 
         #getElapsedTimeInSeconds() {
-            return (GlobalTimer.getInstance().getServerTime() - this.#startTime) / 1000;
+            return (GlobalTimer.getInstance().getServerTime() - this.#startTime);
         }
 
         #calculateDistanceTraveled(elapsedTime) {

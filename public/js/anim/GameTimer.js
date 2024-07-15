@@ -20,6 +20,7 @@ export default class GameTimer {
     }
 
     setServerTimeOffset(offset) {
+        console.log('setServerTimeOffset', offset);
         this.serverTimeOffset = offset;
     }
 
