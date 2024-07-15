@@ -68,7 +68,7 @@ async function initMap() {
 
   Socket.getInstance().sendMessage({type: 'serverTime'});
 
-  //1초에 한번씩 현재 client 시간 출력
+  //1초에 한번씩 현재 client 시간 출력..
   // setInterval(() => {
   //   mainPanel.addChat({ sender: "client", message: `${Date.now()}` });
   // }, 1000);
