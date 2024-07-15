@@ -127,7 +127,12 @@ io.on('connection', (socket) => {
         const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
         const idString = unit.id.toString();
 
+        const serverTime = Date.now();
         io.emit('serverTime', { currentTime: Date.now() });
+
+        console.log('server time', serverTime);
+        console.log('unit.startTime', unit.startTime);
+        console.log('serverTime > unit.startTime', serverTime > unit.startTime);
 
         const response = {
           type: 'move',
@@ -138,7 +143,7 @@ io.on('connection', (socket) => {
             size: unit.size,
             speed: unit.speed,
             image: unit.image,
-            startTime: unit.startTime,
+            startTime: serverTime > unit.startTime ? unit.startTime : unit.startTime,
             fromDb: true
           }
         };

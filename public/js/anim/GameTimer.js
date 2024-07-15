@@ -24,7 +24,7 @@ export default class GameTimer {
     }
 
     getServerTime() {
-        return performance.now() + this.serverTimeOffset;
+        return Date.now() + this.serverTimeOffset;
     }
         
     _handleMessage(event) {

@@ -84,6 +84,8 @@ async function initMap() {
         GameMap.getInstance().moveUnit(message);
       } else {
         console.log("unit 없음", message);
+        // serverTime과 clientTime의 차이를 계산
+
         addUnit({
           id: message.sender,
           startPosition: message.unitInfo.startPosition,

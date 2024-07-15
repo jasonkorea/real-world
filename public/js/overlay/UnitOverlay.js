@@ -7,7 +7,7 @@ export default function createUnitOverlayClass() {
         #startPosition;
         #destinationPosition;
         #startTime;
-        #moving = true;
+        #moving = false;
         #speed;
         #size;
         degree;
@@ -22,7 +22,7 @@ export default function createUnitOverlayClass() {
             this.#startPosition = new google.maps.LatLng(info.startPosition.lat, info.startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(info.destinationPosition.lat, info.destinationPosition.lng);
             this.calculatedSpeed = info.speed * 1000 / 3600;
-            this.#startTime = info.startTime ||  GlobalTimer.getInstance().getServerTime();
+            this.#startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
             if (info.startTime) {
                 console.log("infoi.startTime exists!!!", info.startTime);
             } else {
@@ -174,7 +174,6 @@ export default function createUnitOverlayClass() {
         }
 
         #getElapsedTimeInSeconds() {
-            // console.log("getElapsedTimeInSeconds", (Date.now() - this.#startTime) / 1000);
             return (GlobalTimer.getInstance().getServerTime() - this.#startTime) / 1000;
         }
 
@@ -217,12 +216,9 @@ export default function createUnitOverlayClass() {
 
 
             console.log("startTime", startTime);
-            console.log("now", GlobalTimer.getInstance().getServerTime());
-            if ((GlobalTimer.getInstance().getServerTime() - startTime) < 0) {
-                this.#startTime = GlobalTimer.getInstance().getServerTime();
-            } else {
-                this.#startTime = startTime;
-            }
+            console.log("server time", GlobalTimer.getInstance().getServerTime());
+            
+            this.#startTime = startTime;
 
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
             this.#moving = true;

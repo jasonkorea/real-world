@@ -16,14 +16,32 @@ exports.createOrUpdateUnit = async (msg) => {
         const id = msg.sender;
         const startLatString = msg.unitInfo.startPosition.lat.toString();
         const startLngString = msg.unitInfo.startPosition.lng.toString();
-        const startPosition = { lat:startLatString, lng: startLngString };
+        const startPosition = { lat: startLatString, lng: startLngString };
         const destLatString = msg.unitInfo.destinationPosition.lat.toString();
         const destLngString = msg.unitInfo.destinationPosition.lng.toString();
         const destinationPosition = { lat: destLatString, lng: destLngString };
         const size = msg.unitInfo.size;
         const speed = msg.unitInfo.speed;
         const image = msg.unitInfo.image;
-        const startTime = msg.unitInfo.startTime ? msg.unitInfo.startTime : Date.now();
+        if (msg.unitInfo.startTime) {
+            console.log('msg.unitInfo.startTime exists!!!', msg.unitInfo.startTime);
+        } else {
+            console.log('msg.unitInfo.startTime does not exist!!!', msg.unitInfo.startTime);
+        }
+        //const startTime = msg.unitInfo.startTime ? msg.unitInfo.startTime : Date.now();
+        let startTime;
+        if (msg.unitInfo.startTime) {
+            if (startPosition == destinationPosition) {
+                console.log('출발지와 목적지가 같습니다. startTime을 현재 시간으로 설정합니다.');
+                startTime = Date.now();
+            } else {
+                console.log('출발지와 목적지가 다릅니다. startTime을 msg.unitInfo.startTime으로 설정합니다.');
+                startTime = msg.unitInfo.startTime;
+            }
+        } else {
+            console.log('msg.unitInfo.startTime이 없습니다. startTime을 현재 시간으로 설정합니다.');
+            startTime = Date.now();
+        }
 
         //let existingUnit = await Unit.findOne({ id: unit.sender });
         let existingUnit = user.unit ? await Unit.findById(user.unit) : null;
