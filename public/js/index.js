@@ -26,6 +26,7 @@ async function initMap() {
   GPS.getInstance().start();
 
   // 구글 맵을 로드한다.
+  /* global google */
   const { Map } = await google.maps.importLibrary("maps");
   const map = new Map(document.getElementById("map"), {
     zoom: 17,
@@ -98,7 +99,7 @@ async function initMap() {
       }
     } else if (message.type === "notice") {
       mainPanel.addChat(message);
-    } else if (message.type = 'serverTime') {
+    } else if (message.type === 'serverTime') {
       GameTimer.getInstance().setServerTimeOffset(message.data - Date.now());
     }
   });
@@ -110,12 +111,11 @@ async function initMap() {
 
   GameTimer.getInstance().start();
 
+  requestInitialData();
   // GPS 정보를 받아서 유닛을 생성하고 현재 위치로 이동한다.
   GPS.getInstance().getLastPosition().then(position => {
-    console.log("최신 GPS 정보 받음. 지도 이동");
+    console.log(`최신 GPS 정보 받음. 지도 이동 : ${position.coords.latitude}, ${position.coords.longitude}`);
     GameMap.getInstance().moveToCurrentPosition();
-    requestInitialData();
-
   });
 
   function requestInitialData() {

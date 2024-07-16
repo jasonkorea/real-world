@@ -1,6 +1,4 @@
-import GameTimer from "../anim/GameTimer.js";
 import GlobalTimer from "../anim/GameTimer.js";
-import MainPanel from "../control/MainPanel.js";
 
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
@@ -139,6 +137,7 @@ export default function createUnitOverlayClass() {
 
                 // 최종 회전 각도를 계산합니다.
                 const finalDegree = currentDegree + degreeDifference;
+                this.finalDegree = finalDegree;
 
                 this.div.style.transition = 'transform 1s ease-out';
                 this.div.style.transform = `rotate(${finalDegree}deg)`;
@@ -256,11 +255,21 @@ export default function createUnitOverlayClass() {
         }
 
         showMarker() {
+            const size = 30;
+            const mapsSize = new google.maps.Size(size, size);
+            const anchor = new google.maps.Point(size / 2, size / 2);
             if (!this.marker) {
+                /* global google */
                 this.marker = new google.maps.Marker({
-                    position: this.getCurrentCenter(),
+                    position: {lat : this.getCurrentCenter().lat(), lng : this.getCurrentCenter().lng()},
                     map: this.map,
-                    // 마커에 대한 추가 설정 (예: 아이콘)을 여기에 추가할 수 있습니다.
+                    //icon을 this.image를 설정합니다.
+                    icon: {
+                        url: this.image,
+                        scaledSize: mapsSize,
+                        anchor: anchor,
+                        rotation: this.finalDegree ? this.finalDegree : 0
+                    }
                 });
             }
         }
@@ -270,6 +279,14 @@ export default function createUnitOverlayClass() {
                 this.marker.setMap(null);
                 this.marker = null;
             }
+        }
+
+        hideOverlay() {
+            this.div.style.visibility = "hidden";
+        }
+
+        showOverlay() {
+            this.div.style.visibility = "visible";
         }
     }
 }

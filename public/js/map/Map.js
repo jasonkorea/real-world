@@ -3,7 +3,6 @@ import GPS from "../location/GPS.js";
 import UnitOverlay from "../overlay/UnitOverlay.js";
 import Socket from "../socket/Socket.js";
 import GlobalTimer from "../anim/GameTimer.js";
-import MainPanel from "../control/MainPanel.js";
 
 export default class RealMap {
     #map;
@@ -97,6 +96,7 @@ export default class RealMap {
     }
 
     async #createMarker() {
+        /* global google */
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
         // The marker, positioned at Uluru
@@ -196,11 +196,13 @@ export default class RealMap {
                 // 줌 레벨이 임계값 아래일 때
                 this.units.forEach(unit => {
                     unit.showMarker();
+                    unit.hideOverlay();
                 });
             } else {
                 // 줌 레벨이 임계값 이상일 때
                 this.units.forEach(unit => {
                     unit.hideMarker();
+                    unit.showOverlay();
                 });
             }
         });

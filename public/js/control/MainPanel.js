@@ -14,6 +14,7 @@ export default class MainPanel {
         GPS.getInstance().addListener({
             onSuccess: (position) => {
                 // this.addChat({ sender: "GPS", message: `${Date.now()} lat : ${position.coords.latitude}, lng : ${position.coords.longitude}` });
+                console.log(`최신 GPS 정보 받음. 지도 이동 : ${position.coords.latitude}, ${position.coords.longitude}`);
             },
             onError: (error) => {
                 this.addChat({ sender: "GPS", message: `error : ${error.message}` });
@@ -98,12 +99,12 @@ export default class MainPanel {
                 chatPanel.classList.remove('chat-panel-hide');
                 chatPanel.classList.add('chat-panel-show');
                 chatPanel.style.display = 'block'; // 애니메이션 시작 전에 채팅창을 블록으로 설정
-                MainPanel.getInstance().adjustFloatingButton(true); // 나타나는 상태로 버튼 조정
+                MainPanel.getInstance().adjustFloatingButton(); // 나타나는 상태로 버튼 조정
             } else {
                 // 채팅창 숨기기
                 chatPanel.classList.remove('chat-panel-show');
                 chatPanel.classList.add('chat-panel-hide');
-                MainPanel.getInstance().adjustFloatingButton(true); // 사라지는 상태로 버튼 조정
+                MainPanel.getInstance().adjustFloatingButton(); // 사라지는 상태로 버튼 조정
             }
         });
 
@@ -111,7 +112,7 @@ export default class MainPanel {
         document.getElementById('panel').addEventListener('animationend', function (e) {
             if (e.animationName === 'slideOut') {
                 this.style.display = 'none'; // 애니메이션이 slideOut일 때만 채팅창을 숨깁니다.
-                MainPanel.getInstance().adjustFloatingButton(false);
+                MainPanel.getInstance().adjustFloatingButton();
             }
         });
     }
