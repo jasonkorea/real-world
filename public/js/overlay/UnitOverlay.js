@@ -2,6 +2,8 @@ import GlobalTimer from "../anim/GameTimer.js";
 
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
+        #markerSize = 30;
+
         #bounds;
         #id;
         #startPosition;
@@ -227,6 +229,10 @@ export default function createUnitOverlayClass() {
         move(startPosition, destinationPosition, startTime, clicked) {
             this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
 
+            if (this.marker) {
+                this.updateMarkerIcon(this.degree);
+            }
+
             console.log("move!!!!!!!!!!!!!!", startPosition, destinationPosition, startTime);
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
@@ -236,7 +242,7 @@ export default function createUnitOverlayClass() {
             //MainPanel.getInstance().addChat({ sender: "move()", message: `startTime : ${startTime}` });
             console.log("server time", GlobalTimer.getInstance().getServerTime());
             //MainPanel.getInstance().addChat({ sender: "move()", message: `server time : ${GlobalTimer.getInstance().getServerTime()}` });
-            
+
             if (!clicked) {
                 this.#startTime = GlobalTimer.getInstance().getServerTime();
             } else {
@@ -254,22 +260,43 @@ export default function createUnitOverlayClass() {
             }
         }
 
+        updateMarkerIcon(angle) {
+            this.rotateImage(this.image, angle, rotatedImageUrl => {
+                this.marker.setIcon({
+                    url: rotatedImageUrl,
+                    // Make sure to keep the existing icon size and anchor if needed
+                    scaledSize: new google.maps.Size(this.#markerSize, this.#markerSize),
+                    anchor: new google.maps.Point(this.#markerSize / 2, this.#markerSize / 2)
+                });
+            });
+        }
+
+
+        // 수정된 showMarker 메서드
         showMarker() {
-            const size = 30;
-            const mapsSize = new google.maps.Size(size, size);
-            const anchor = new google.maps.Point(size / 2, size / 2);
+            /* global google */
+            const mapsSize = new google.maps.Size(this.#markerSize, this.#markerSize);
+            const anchor = new google.maps.Point(this.#markerSize / 2, this.#markerSize / 2);
             if (!this.marker) {
-                /* global google */
-                this.marker = new google.maps.Marker({
-                    position: {lat : this.getCurrentCenter().lat(), lng : this.getCurrentCenter().lng()},
-                    map: this.map,
-                    //icon을 this.image를 설정합니다.
-                    icon: {
-                        url: this.image,
+                this.rotateImage(this.image, this.finalDegree ? this.finalDegree : 0, rotatedImageUrl => {
+                    this.marker = new google.maps.Marker({
+                        position: { lat: this.getCurrentCenter().lat(), lng: this.getCurrentCenter().lng() },
+                        map: this.map,
+                        icon: {
+                            url: rotatedImageUrl,
+                            scaledSize: mapsSize,
+                            anchor: anchor
+                        }
+                    });
+                });
+            } else {
+                // 이미 마커가 존재하면 이미지만 업데이트
+                this.rotateImage(this.image, this.finalDegree ? this.finalDegree : 0, rotatedImageUrl => {
+                    this.marker.setIcon({
+                        url: rotatedImageUrl,
                         scaledSize: mapsSize,
-                        anchor: anchor,
-                        rotation: this.finalDegree ? this.finalDegree : 0
-                    }
+                        anchor: anchor
+                    });
                 });
             }
         }
@@ -287,6 +314,23 @@ export default function createUnitOverlayClass() {
 
         showOverlay() {
             this.div.style.visibility = "visible";
+        }
+
+        rotateImage(imageUrl, angle, callback) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const image = new Image();
+
+            image.onload = function () {
+                canvas.width = image.width;
+                canvas.height = image.height;
+                context.translate(canvas.width / 2, canvas.height / 2);
+                context.rotate(angle * Math.PI / 180);
+                context.drawImage(image, -image.width / 2, -image.height / 2);
+                callback(canvas.toDataURL());
+            };
+
+            image.src = imageUrl;
         }
     }
 }

@@ -135,8 +135,21 @@ export default class RealMap {
         controlUI.style.cursor = "pointer";
         controlUI.style.color = "white";
         controlUI.style.textAlign = "center";
+        controlUI.style.borderBottom = "1px solid white";
+
+        // 현재 위치로 이동 버튼
+        const moveToCurrentLocationUI = document.createElement("div");
+        moveToCurrentLocationUI.id = "move-to-current-location";
+        moveToCurrentLocationUI.innerText = "현재 위치로 이동";
+        moveToCurrentLocationUI.style.cursor = "pointer";
+        moveToCurrentLocationUI.style.color = "white";
+        moveToCurrentLocationUI.style.textAlign = "center";
+        moveToCurrentLocationUI.addEventListener("click", () => {
+            this.moveToCurrentPosition();
+        });
 
         controlDiv.appendChild(controlUI);
+        controlDiv.appendChild(moveToCurrentLocationUI);
 
         controlUI.addEventListener("click", () => {
             //this.moveToCurrentPosition();
