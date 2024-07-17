@@ -309,9 +309,7 @@ export default function createUnitOverlayClass() {
                 return end;
             }
             const ratio = distance / totalDistance;
-            const lat = start.lat() + (end.lat() - start.lat()) * ratio;
-            const lng = start.lng() + (end.lng() - start.lng()) * ratio;
-            return new google.maps.LatLng(lat, lng);
+            return google.maps.geometry.spherical.interpolate(start, end, ratio);
         }
 
         move(startPosition, destinationPosition, startTime, clicked) {
@@ -419,8 +417,8 @@ export default function createUnitOverlayClass() {
             if (!this.polyline) {
                 this.polyline = new google.maps.Polyline({
                     path: path,
-                    geodesic: true,
-                    strokeColor: '#FF4444',
+                    geodesic: true, // 지구의 곡률을 따르도록 설정
+                    strokeColor: '#00FF00', // 밝은 녹색
                     strokeOpacity: 1.0,
                     strokeWeight: 2,
                     icons: [{
