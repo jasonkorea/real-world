@@ -4,7 +4,6 @@ import MainPanel from "../control/MainPanel.js";
 
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
-        #markerSize = 10;
 
         #bounds;
         #id;
