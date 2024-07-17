@@ -115,7 +115,7 @@ io.on('connection', (socket) => {
       const units = await dbm.getAllUnits();
       console.log('unitssssss', units);
 
-      units.forEach(unit => {
+      units.forEach(async unit => {
         if (!unit.startPosition.lat) {
           console.log('unit.startPosition.lat is null');
           return;
@@ -127,7 +127,7 @@ io.on('connection', (socket) => {
         const destLngString = unit.destinationPosition.lng.toString();
         const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
         const idString = unit.id.toString();
-
+        const userName = await dbm.getDisplayNameByGoogleId(msg.sender);
         const serverTime = Date.now();
         io.emit('serverTime', { currentTime: Date.now() });
 
@@ -144,6 +144,7 @@ io.on('connection', (socket) => {
             size: unit.size,
             speed: unit.speed,
             image: unit.image,
+            userName: userName,
             startTime: serverTime > unit.startTime ? unit.startTime : unit.startTime,
             fromDb: true
           }

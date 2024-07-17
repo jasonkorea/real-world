@@ -176,12 +176,13 @@ export default class RealMap {
             return;
         }
         this.map.panTo({ lat: this.position.coords.latitude, lng: this.position.coords.longitude });
+        this.map.setZoom(15);
     }
 
     async moveCameraToUnit(id) {
         console.log(this.units.get(id));
         this.map.panTo(await this.units.get(id).getCurrentCenter());
-        this.map.setZoom(16);
+        this.map.setZoom(15);
     }
 
     moveUnit(message) {

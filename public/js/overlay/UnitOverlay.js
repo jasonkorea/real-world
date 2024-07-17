@@ -1,8 +1,10 @@
+/* eslint-disable no-undef */
 import GlobalTimer from "../anim/GameTimer.js";
+import MainPanel from "../control/MainPanel.js";
 
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
-        #markerSize = 30;
+        #markerSize = 10;
 
         #bounds;
         #id;
@@ -260,12 +262,12 @@ export default function createUnitOverlayClass() {
                 this.#setBounds(this.#destinationPosition.lat(), this.#destinationPosition.lng(), this.#size);
                 this.draw();
                 this.#moving = false;
-                
+
                 if (this.polyline) {
                     this.polyline.setMap(null);
                     this.polyline = null;
                 }
-                
+
                 return;
             }
             this.#updateOverlayPosition(currentLatLng);
@@ -338,47 +340,41 @@ export default function createUnitOverlayClass() {
             this.updatePolyline(this.getCurrentCenter());
         }
 
-        updateMarkerIcon(angle) {
-            this.rotateImage(this.image, angle, rotatedImageUrl => {
-                this.marker.setIcon({
-                    url: rotatedImageUrl,
-                    scaledSize: new google.maps.Size(this.#markerSize, this.#markerSize),
-                    anchor: new google.maps.Point(this.#markerSize / 2, this.#markerSize / 2)
-                });
-            });
+        updateMarkerIcon() {
+            if (this.marker) {
+                this.marker.setPosition(this.getCurrentCenter());
+            }
         }
 
-        showMarker() {
-            const mapsSize = new google.maps.Size(this.#markerSize, this.#markerSize);
-            const anchor = new google.maps.Point(this.#markerSize / 2, this.#markerSize / 2);
-            if (!this.marker) {
-                this.rotateImage(this.image, this.finalDegree ? this.finalDegree : 0, rotatedImageUrl => {
-                    this.marker = new google.maps.Marker({
-                        position: { lat: this.getCurrentCenter().lat(), lng: this.getCurrentCenter().lng() },
-                        map: this.map,
-                        icon: {
-                            url: rotatedImageUrl,
-                            scaledSize: mapsSize,
-                            anchor: anchor
-                        },
-                    });
 
-                    // 마커에 클릭 이벤트 리스너 추가
-                    google.maps.event.addListener(this.marker, 'click', () => {
-                        this.isSelected = !this.isSelected;
-                        this.#updateCircle();
-                    });
+
+
+        showMarker() {
+            if (!this.marker) {
+                this.marker = new google.maps.Marker({
+                    position: { lat: this.getCurrentCenter().lat(), lng: this.getCurrentCenter().lng() },
+                    map: this.map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#800080', // 보라색
+                        fillOpacity: 1.0,
+                        strokeColor: '#FFFFFF', // 하얀 테두리
+                        strokeWeight: 2,
+                        scale: 10 // 점의 크기 조절
+                    },
                 });
-            } else {
-                this.rotateImage(this.image, this.finalDegree ? this.finalDegree : 0, rotatedImageUrl => {
-                    this.marker.setIcon({
-                        url: rotatedImageUrl,
-                        scaledSize: mapsSize,
-                        anchor: anchor
-                    });
+        
+                // 마커에 클릭 이벤트 리스너 추가
+                google.maps.event.addListener(this.marker, 'click', () => {
+                    this.isSelected = !this.isSelected;
+                    this.#updateCircle();
+                    this.map.panTo(this.marker.getPosition()); // 마커의 위치로 지도를 이동
+                    this.map.setZoom(15);
                 });
             }
         }
+        
+        
 
         hideMarker() {
             if (this.marker) {
@@ -418,7 +414,8 @@ export default function createUnitOverlayClass() {
                 this.polyline = new google.maps.Polyline({
                     path: path,
                     geodesic: true, // 지구의 곡률을 따르도록 설정
-                    strokeColor: '#00FF00', // 밝은 녹색
+                    //어두운 붉은색
+                    strokeColor: '#FF5555',
                     strokeOpacity: 1.0,
                     strokeWeight: 2,
                     icons: [{
