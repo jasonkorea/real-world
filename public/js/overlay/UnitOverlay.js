@@ -108,6 +108,7 @@ export default function createUnitOverlayClass() {
             this.div.style.borderStyle = "none";
             this.div.style.borderWidth = "0px";
             this.div.style.position = "absolute";
+            this.div.style.cursor = "pointer";
             const img = new Image();
             img.onload = () => {
                 this.div.append(img);
@@ -117,7 +118,7 @@ export default function createUnitOverlayClass() {
             img.style.height = "100%";
             img.style.position = "absolute";
             const panes = this.getPanes();
-            panes.overlayLayer.appendChild(this.div);
+            panes.overlayMouseTarget.appendChild(this.div);
 
             //Name
             this.#createUserNameDiv();
@@ -125,13 +126,22 @@ export default function createUnitOverlayClass() {
         }
 
         #addEventListeners() {
-            if (this.div) {
-                google.maps.event.addDomListener(this.div, 'touchend', function(event) {
-                    console.log("overlay clicked");
-                    MainPanel.getInstance().addChat({ sender: "overlay clicked", message: "overlay clicked" });
-                    event.stopPropagation();
-                });
-            }
+            // set this as locally scoped var so event does not get confused
+            var me = this;
+
+            // Add a listener - we'll accept clicks anywhere on this div, but you may want
+            // to validate the click i.e. verify it occurred in some portion of your overlay.
+            google.maps.event.addDomListener(this.div, 'click', function (event) {
+                event.stopPropagation();
+                google.maps.event.trigger(me, 'click');
+            });
+
+            // Add your custom click handling code here
+            google.maps.event.addListener(me, 'click', function () {
+                console.log("Overlay clicked");
+                MainPanel.getInstance().addChat({ sender: "overlay clicked", message: "overlay clicked" });
+
+            });
         }
 
         #createUserNameDiv() {
@@ -144,7 +154,7 @@ export default function createUnitOverlayClass() {
                 //text size
                 this.userNameDiv.style.fontSize = '12px';
                 const panes = this.getPanes();
-                panes.overlayLayer.appendChild(this.userNameDiv);
+                panes.overlayMouseTarget.appendChild(this.userNameDiv);
             }
         }
 
