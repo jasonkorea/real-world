@@ -136,10 +136,6 @@ export default function createUnitOverlayClass() {
             google.maps.event.addListener(me, 'click', function () {
                 me.isSelected = !me.isSelected;
                 me.#updateCircle();
-                if (me.isSelected) {
-                    const currentTime = GlobalTimer.getInstance().getServerTime();
-                    me.move(me.startPosition, me.#destinationPosition, currentTime, true);
-                }
             });
         }
         
@@ -278,7 +274,7 @@ export default function createUnitOverlayClass() {
             this.#updateOverlayPosition(currentLatLng);
             this.draw();
             if (this.marker) {
-                this.marker.setPosition(this.getCurrentCenter());
+                this.marker.position = this.getCurrentCenter();
             }
             this.updatePolyline(currentLatLng);
         }
@@ -309,10 +305,10 @@ export default function createUnitOverlayClass() {
         #getCurrentPosition(start, end, distance) {
             // Ensure start and end are google.maps.LatLng objects
             if (!(start instanceof google.maps.LatLng)) {
-                start = new google.maps.LatLng(start.lat, start.lng);
+                start = new google.maps.LatLng(start.lat(), start.lng);
             }
             if (!(end instanceof google.maps.LatLng)) {
-                end = new google.maps.LatLng(end.lat, end.lng);
+                end = new google.maps.LatLng(end.lat(), end.lng);
             }
         
             const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(start, end);
@@ -324,14 +320,21 @@ export default function createUnitOverlayClass() {
         }
 
         move(startPosition, destinationPosition, startTime, clicked) {
-            this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
+            if (!(startPosition instanceof google.maps.LatLng)) {
+                startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
+            }
+            if (!(destinationPosition instanceof google.maps.LatLng)) {
+                destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
+            }
+        
+            this.degree = google.maps.geometry.spherical.computeHeading(startPosition, destinationPosition);
         
             if (this.marker) {
                 this.updateMarkerIcon(this.degree);
             }
         
-            this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
-            this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
+            this.#startPosition = startPosition;
+            this.#destinationPosition = destinationPosition;
         
             if (!clicked) {
                 this.#startTime = GlobalTimer.getInstance().getServerTime();
@@ -343,7 +346,7 @@ export default function createUnitOverlayClass() {
             this.#moving = true;
         
             if (this.marker) {
-                this.marker.setPosition(this.getCurrentCenter());
+                this.marker.position = this.getCurrentCenter();
             }
         
             this.updatePolyline(this.getCurrentCenter());
@@ -369,7 +372,7 @@ export default function createUnitOverlayClass() {
 
         updateMarkerIcon() {
             if (this.marker) {
-                this.marker.setPosition(this.getCurrentCenter());
+                this.marker.position = this.getCurrentCenter();
             }
         }
 
@@ -378,24 +381,17 @@ export default function createUnitOverlayClass() {
 
         showMarker() {
             if (!this.marker) {
-                this.marker = new google.maps.Marker({
-                    position: { lat: this.getCurrentCenter().lat(), lng: this.getCurrentCenter().lng() },
+                this.marker = new google.maps.marker.AdvancedMarkerElement({
+                    position: this.getCurrentCenter(),
                     map: this.map,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: '#800080', // 보라색
-                        fillOpacity: 1.0,
-                        strokeColor: '#FFFFFF', // 하얀 테두리
-                        strokeWeight: 2,
-                        scale: 5 // 점의 크기 조절
-                    },
+                    content: document.createElement("div") // Add your custom marker content here
                 });
         
                 // 마커에 클릭 이벤트 리스너 추가
-                google.maps.event.addListener(this.marker, 'click', () => {
+                this.marker.addListener('click', () => {
                     this.isSelected = !this.isSelected;
                     this.#updateCircle();
-                    this.map.panTo(this.marker.getPosition()); // 마커의 위치로 지도를 이동
+                    this.map.panTo(this.marker.position); // 마커의 위치로 지도를 이동
                     this.map.setZoom(16);
                 });
             }
@@ -405,7 +401,7 @@ export default function createUnitOverlayClass() {
 
         hideMarker() {
             if (this.marker) {
-                this.marker.setMap(null);
+                this.marker.map = null;
                 this.marker = null;
             }
         }
