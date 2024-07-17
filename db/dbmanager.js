@@ -114,3 +114,17 @@ exports.clearAllUnits = async () => {
         throw error;
     }
 }
+
+exports.getDisplayNameByGoogleId = async (googleId) => {
+    try {
+        const user = await User.findOne({
+            googleId:
+                googleId
+        });
+        return user.displayName;
+    }
+    catch (error) {
+        console.error(error);
+        throw error;
+    }
+};

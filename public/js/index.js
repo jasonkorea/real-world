@@ -94,7 +94,8 @@ async function initMap() {
           size: message.unitInfo.size,
           speed: message.unitInfo.speed,
           image: '../resources/airplane.png',
-          startTime: message.unitInfo.startTime
+          startTime: message.unitInfo.startTime,
+          userName: message.unitInfo.userName
         });
       }
     } else if (message.type === "notice") {
@@ -131,9 +132,10 @@ async function initMap() {
     const size = info.size;
     const speed = info.speed;
     const image = info.image;
-
+    const userName = info.userName;
     console.log("startPosition lat lng = ", startPosition.lat, startPosition.lng);
     console.log("destinationPosition lat lng = ", destinationPosition.lat, destinationPosition.lng);
+
     const unit = GameMap.getInstance().addUnit({
       "googleId": info.id,
       "startPosition": { lat: startPosition.lat, lng: startPosition.lng },
@@ -141,7 +143,8 @@ async function initMap() {
       "size": size,
       "speed": speed,
       "image": image,
-      "startTime": info.startTime
+      "startTime": info.startTime,
+      "userName": userName
     });
     GameTimer.getInstance().addOverlay(unit);
     

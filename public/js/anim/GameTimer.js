@@ -1,4 +1,3 @@
-import UnitOverlay from "../overlay/UnitOverlay.js";
 
 export default class GameTimer {
 
@@ -31,9 +30,7 @@ export default class GameTimer {
     _handleMessage(event) {
         if (event.data.type === 'tick') {
             this.update(event.data.deltaTime);
-        } else if (event.data.type === 'progress') {
-
-        }
+        } else if (event.data.type === 'progress') { /* empty */ }
     }
 
     start() {
@@ -49,6 +46,7 @@ export default class GameTimer {
         this.worker.postMessage({ type: 'setInterval', value: interval });
     }
 
+    // eslint-disable-next-line no-unused-vars
     update(deltaTime) {
         this.overays.forEach(overlay => {
             overlay.updateBounds();

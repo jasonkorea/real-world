@@ -1,4 +1,5 @@
 import GlobalTimer from "../anim/GameTimer.js";
+import MainPanel from "../control/MainPanel.js";
 
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
@@ -12,6 +13,7 @@ export default function createUnitOverlayClass() {
         #moving = false;
         #speed;
         #size;
+        #userName;
         degree;
 
         constructor(info) {
@@ -30,6 +32,7 @@ export default function createUnitOverlayClass() {
             } else {
                 console.log("infoi.startTime does not exist!!!", info.startTime);
             }
+            this.#userName = info.userName;
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
         }
 
@@ -115,6 +118,34 @@ export default function createUnitOverlayClass() {
             img.style.position = "absolute";
             const panes = this.getPanes();
             panes.overlayLayer.appendChild(this.div);
+
+            //Name
+            this.#createUserNameDiv();
+            this.#addEventListeners();
+        }
+
+        #addEventListeners() {
+            if (this.div) {
+                google.maps.event.addDomListener(this.div, 'touchend', function(event) {
+                    console.log("overlay clicked");
+                    MainPanel.getInstance().addChat({ sender: "overlay clicked", message: "overlay clicked" });
+                    event.stopPropagation();
+                });
+            }
+        }
+
+        #createUserNameDiv() {
+            if (!this.userNameDiv) {
+                this.userNameDiv = document.createElement('div');
+                this.userNameDiv.className = 'custom-marker';
+                this.userNameDiv.innerHTML = this.#userName;
+                this.userNameDiv.style.color = 'white';
+                this.userNameDiv.style.textShadow = '1px 1px 1px black';
+                //text size
+                this.userNameDiv.style.fontSize = '12px';
+                const panes = this.getPanes();
+                panes.overlayLayer.appendChild(this.userNameDiv);
+            }
         }
 
         draw() {
@@ -127,9 +158,7 @@ export default function createUnitOverlayClass() {
                 this.div.style.top = `${ne.y}px`;
                 this.div.style.width = `${ne.x - sw.x}px`;
                 this.div.style.height = `${sw.y - ne.y}px`;
-            }
 
-            if (this.div) {
                 // 현재 div의 회전 각도를 가져옵니다.
                 const currentDegree = parseFloat(this.div.style.transform.replace(/[^\d.]/g, '')) || 0;
                 // 목표 각도와의 차이를 계산합니다.
@@ -143,6 +172,17 @@ export default function createUnitOverlayClass() {
 
                 this.div.style.transition = 'transform 1s ease-out';
                 this.div.style.transform = `rotate(${finalDegree}deg)`;
+            }
+
+            this.#updateUserNameDiv(sw, ne);
+        }
+
+        #updateUserNameDiv(sw, ne) {
+            if (this.userNameDiv) {
+                this.userNameDiv.style.position = 'absolute';
+                this.userNameDiv.style.left = `${sw.x + (ne.x - sw.x) / 2 - this.userNameDiv.offsetWidth / 2}px`;
+                this.userNameDiv.style.top = `${sw.y}px`;
+                this.userNameDiv.style.transform = 'translateY(100%)';
             }
         }
 
@@ -286,7 +326,7 @@ export default function createUnitOverlayClass() {
                             url: rotatedImageUrl,
                             scaledSize: mapsSize,
                             anchor: anchor
-                        }
+                        },
                     });
                 });
             } else {

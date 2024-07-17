@@ -20,7 +20,7 @@ export default class RealMap {
         this.#initMap();
         this.#map = map;
         this.units = new Map();
-        this.UnitOveray = UnitOverlay();
+        this.UnitOverlay = UnitOverlay();
         RealMap.instance = this;
         this.toggleUnitDisplayBasedOnZoom();
     }
@@ -159,8 +159,8 @@ export default class RealMap {
     }
 
     addUnit(unitInfo) {
-        console.log("----------------- unit.id : ", unitInfo.googleId);
-        const unit = new this.UnitOveray(unitInfo);
+        console.log("----------------- unitInfo : ", unitInfo);
+        const unit = new this.UnitOverlay(unitInfo);
         this.units.set(unit.id, unit);
         unit.setMap(this.map);
         unit.move(unitInfo.startPosition, unitInfo.destinationPosition, unitInfo.startTime, true);

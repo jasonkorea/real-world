@@ -19,8 +19,7 @@ const PORT = process.env.PORT || 3000;
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}).then
-  (() => console.log('Connected to MongoDB'))
+}).then(() => console.log('Connected to MongoDB'))
   .catch(err => console.log(err));
 
 // Passport config
@@ -89,8 +88,11 @@ io.on('connection', (socket) => {
     if (msg.type === 'serverTime') {
       socket.emit('message', { type: 'serverTime', data: Date.now() });
     } else if (msg.type === 'move') {
+      //get displayName from googleId
+
       const freshUnit = await dbm.createOrUpdateUnit(msg);
       console.log('freshUnit : id', freshUnit.id);
+      const userName = await dbm.getDisplayNameByGoogleId(msg.sender);
       const response = {
         type: 'move',
         sender: msg.sender,
@@ -101,7 +103,8 @@ io.on('connection', (socket) => {
           size: freshUnit.size,
           speed: freshUnit.speed,
           image: freshUnit.image,
-          startTime: freshUnit.startTime
+          startTime: freshUnit.startTime,
+          userName: userName
         }
       };
       io.emit('message', response);
