@@ -17,6 +17,7 @@ export default function createUnitOverlayClass() {
         #userName;
         degree;
         isSelected = false;
+        #followInterval;
 
         constructor(info) {
             super();
@@ -127,22 +128,49 @@ export default function createUnitOverlayClass() {
 
         #addEventListeners() {
             var me = this;
-        
-            google.maps.event.addDomListener(this.div, 'click', function (event) {
-                event.stopPropagation(); // 이벤트 전파 중지
+            var touchHandled = false;
+
+            function handleTouchEnd(event) {
+                event.stopPropagation();
+                event.preventDefault();
+                touchHandled = true;
                 google.maps.event.trigger(me, 'click');
-            });
-        
+            }
+
+            function handleClick(event) {
+                if (!touchHandled) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    google.maps.event.trigger(me, 'click');
+                }
+                touchHandled = false;
+            }
+
+            google.maps.event.addDomListener(this.div, 'click', handleClick);
+            google.maps.event.addDomListener(this.div, 'touchend', handleTouchEnd);
+
             google.maps.event.addListener(me, 'click', function () {
                 me.isSelected = !me.isSelected;
                 me.#updateCircle();
                 if (me.isSelected) {
-                    const currentTime = GlobalTimer.getInstance().getServerTime();
-                    me.move(me.startPosition, me.#destinationPosition, currentTime, true);
+                    this.#followMarker();
+                } else {
+                    clearInterval(this.#followInterval);
+                    this.#followInterval = null;
                 }
             });
+
+            // For mobile specifically, add touchstart and touchmove to handle touch interactions properly
+            google.maps.event.addDomListener(this.div, 'touchstart', function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            });
+
+            google.maps.event.addDomListener(this.div, 'touchmove', function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            });
         }
-        
 
         #createUserNameDiv() {
             if (!this.userNameDiv) {
@@ -193,6 +221,7 @@ export default function createUnitOverlayClass() {
         }
 
         #updateCircle() {
+            if (!this.div) return;
             const divWidth = this.div.offsetWidth;
             const divHeight = this.div.offsetHeight;
             const radius = Math.max(divWidth, divHeight) / 2 + 10;
@@ -314,7 +343,7 @@ export default function createUnitOverlayClass() {
             if (!(end instanceof google.maps.LatLng)) {
                 end = new google.maps.LatLng(end.lat, end.lng);
             }
-        
+
             const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(start, end);
             if (distance >= totalDistance) {
                 return end;
@@ -325,47 +354,47 @@ export default function createUnitOverlayClass() {
 
         move(startPosition, destinationPosition, startTime, clicked) {
             this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
-        
+
             if (this.marker) {
                 this.updateMarkerIcon(this.degree);
             }
-        
+
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
-        
+
             if (!clicked) {
                 this.#startTime = GlobalTimer.getInstance().getServerTime();
             } else {
                 this.#startTime = startTime;
             }
-        
+
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
             this.#moving = true;
-        
+
             if (this.marker) {
                 this.marker.setPosition(this.getCurrentCenter());
             }
-        
+
             this.updatePolyline(this.getCurrentCenter());
-        
+
             // Calculate and display arrival time
             const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(this.#startPosition, this.#destinationPosition);
             const travelTimeSeconds = totalDistance / (this.#speed / 3.6); // speed in m/s
-        
+
             const arrivalTime = new Date(this.#startTime + travelTimeSeconds * 1000);
-        
+
             const hours = arrivalTime.getHours();
             const minutes = arrivalTime.getMinutes();
             const seconds = arrivalTime.getSeconds();
-        
+
             const formattedDate = arrivalTime.toLocaleDateString();
             const formattedTime = arrivalTime.toLocaleTimeString();
-        
+
             MainPanel.getInstance().addChat({ sender: "안내", message: `도착 예정 시간: ${formattedDate} ${formattedTime} (소요시간: ${hours}시간 ${minutes}분 ${seconds}초)` });
         }
-        
-        
-        
+
+
+
 
         updateMarkerIcon() {
             if (this.marker) {
@@ -390,18 +419,48 @@ export default function createUnitOverlayClass() {
                         scale: 5 // 점의 크기 조절
                     },
                 });
-        
+
                 // 마커에 클릭 이벤트 리스너 추가
                 google.maps.event.addListener(this.marker, 'click', () => {
                     this.isSelected = !this.isSelected;
                     this.#updateCircle();
-                    this.map.panTo(this.marker.getPosition()); // 마커의 위치로 지도를 이동
-                    this.map.setZoom(16);
+                    if (this.isSelected) {
+                        this.map.setZoom(16);
+                        this.#followMarker();
+                    } else {
+                        clearInterval(this.#followInterval);
+                        this.#followInterval = null;
+                    }
                 });
             }
         }
-        
-        
+
+        smoothPanTo(map, targetLatLng, duration) {
+            const startLatLng = map.getCenter();
+            const startTime = performance.now();
+
+            function animate(time) {
+                const elapsed = time - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                const interpolatedLat = startLatLng.lat() + (targetLatLng.lat() - startLatLng.lat()) * progress;
+                const interpolatedLng = startLatLng.lng() + (targetLatLng.lng() - startLatLng.lng()) * progress;
+                map.setCenter(new google.maps.LatLng(interpolatedLat, interpolatedLng));
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        #followMarker() {
+            this.#followInterval = setInterval(() => {
+                //console.log('getCurrentCenter', this.getCurrentCenter());
+                this.smoothPanTo(this.map, this.getCurrentCenter(), 1000);
+            }, 1000);
+        }
 
         hideMarker() {
             if (this.marker) {

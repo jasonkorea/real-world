@@ -116,6 +116,7 @@ async function initMap() {
   // GPS 정보를 받아서 유닛을 생성하고 현재 위치로 이동한다.
   GPS.getInstance().getLastPosition().then(position => {
     console.log(`최신 GPS 정보 받음. 지도 이동 : ${position.coords.latitude}, ${position.coords.longitude}`);
+    MainPanel.getInstance().addChat({ sender: "GPS", message: `최신 GPS 정보 받음. 지도 이동 : ${position.coords.latitude}, ${position.coords.longitude}` });
     GameMap.getInstance().moveToCurrentPosition();
   });
 
