@@ -307,10 +307,14 @@ export default function createUnitOverlayClass() {
         }
 
         #getCurrentPosition(start, end, distance) {
-            if (!(start instanceof google.maps.LatLng) || !(end instanceof google.maps.LatLng)) {
-                console.error("start or end is not a google.maps.LatLng object");
-                return null;
+            // Ensure start and end are google.maps.LatLng objects
+            if (!(start instanceof google.maps.LatLng)) {
+                start = new google.maps.LatLng(start.lat, start.lng);
             }
+            if (!(end instanceof google.maps.LatLng)) {
+                end = new google.maps.LatLng(end.lat, end.lng);
+            }
+        
             const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(start, end);
             if (distance >= totalDistance) {
                 return end;
@@ -350,9 +354,6 @@ export default function createUnitOverlayClass() {
         
             const arrivalTime = new Date(this.#startTime + travelTimeSeconds * 1000);
         
-            const year = arrivalTime.getFullYear();
-            const month = arrivalTime.getMonth() + 1; // Months are zero-indexed
-            const day = arrivalTime.getDate();
             const hours = arrivalTime.getHours();
             const minutes = arrivalTime.getMinutes();
             const seconds = arrivalTime.getSeconds();
@@ -386,7 +387,7 @@ export default function createUnitOverlayClass() {
                         fillOpacity: 1.0,
                         strokeColor: '#FFFFFF', // 하얀 테두리
                         strokeWeight: 2,
-                        scale: 10 // 점의 크기 조절
+                        scale: 5 // 점의 크기 조절
                     },
                 });
         
@@ -395,7 +396,7 @@ export default function createUnitOverlayClass() {
                     this.isSelected = !this.isSelected;
                     this.#updateCircle();
                     this.map.panTo(this.marker.getPosition()); // 마커의 위치로 지도를 이동
-                    this.map.setZoom(15);
+                    this.map.setZoom(16);
                 });
             }
         }
@@ -442,17 +443,18 @@ export default function createUnitOverlayClass() {
                     geodesic: true, // 지구의 곡률을 따르도록 설정
                     //어두운 붉은색
                     strokeColor: '#FF5555',
-                    strokeOpacity: 1.0,
+                    strokeOpacity: 0.4,
                     strokeWeight: 2,
                     icons: [{
                         icon: {
                             path: 'M 0,-1 0,1',
-                            strokeOpacity: 1,
-                            scale: 4
+                            strokeOpacity: 0.4,
+                            scale: 2
                         },
                         offset: '0',
                         repeat: '20px'
                     }],
+                    clickable: false,
                     map: this.map // 폴리라인을 지도에 추가
                 });
             } else {
