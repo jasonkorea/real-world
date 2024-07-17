@@ -15,6 +15,7 @@ export default function createUnitOverlayClass() {
         #size;
         #userName;
         degree;
+        isSelected = false;
 
         constructor(info) {
             super();
@@ -108,7 +109,7 @@ export default function createUnitOverlayClass() {
             this.div.style.borderStyle = "none";
             this.div.style.borderWidth = "0px";
             this.div.style.position = "absolute";
-            this.div.style.cursor = "pointer";
+            this.div.style.cursor = "pointer"; // 마우스 커서 스타일 추가
             const img = new Image();
             img.onload = () => {
                 this.div.append(img);
@@ -132,15 +133,14 @@ export default function createUnitOverlayClass() {
             // Add a listener - we'll accept clicks anywhere on this div, but you may want
             // to validate the click i.e. verify it occurred in some portion of your overlay.
             google.maps.event.addDomListener(this.div, 'click', function (event) {
-                event.stopPropagation();
+                event.stopPropagation(); // 이벤트 전파 중지
                 google.maps.event.trigger(me, 'click');
             });
 
             // Add your custom click handling code here
             google.maps.event.addListener(me, 'click', function () {
-                console.log("Overlay clicked");
-                MainPanel.getInstance().addChat({ sender: "overlay clicked", message: "overlay clicked" });
-
+                me.isSelected = !me.isSelected;
+                me.#updateCircle();
             });
         }
 
@@ -185,6 +185,7 @@ export default function createUnitOverlayClass() {
             }
 
             this.#updateUserNameDiv(sw, ne);
+            this.#updateCircle();
         }
 
         #updateUserNameDiv(sw, ne) {
@@ -195,6 +196,43 @@ export default function createUnitOverlayClass() {
                 this.userNameDiv.style.transform = 'translateY(100%)';
             }
         }
+
+        #updateCircle() {
+            const divWidth = this.div.offsetWidth;
+            const divHeight = this.div.offsetHeight;
+            const radius = Math.max(divWidth, divHeight) / 2 + 10; // this.div를 감쌀 수 있도록 조정
+        
+            if (this.isSelected) {
+                if (!this.circle) {
+                    this.circle = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    this.circle.style.position = "absolute";
+                    this.circle.style.left = "0";
+                    this.circle.style.top = "0";
+                    this.circle.style.width = "100%";
+                    this.circle.style.height = "100%";
+                    this.circle.style.overflow = "visible";
+                    this.circle.innerHTML = `
+                        <circle cx="${divWidth / 2}" cy="${divHeight / 2}" r="${radius}" fill="none" stroke="green" stroke-width="2">
+                            <animate attributeName="r" values="${radius};${radius + 5};${radius}" dur="1s" repeatCount="indefinite" />
+                        </circle>
+                    `;
+                    this.div.appendChild(this.circle);
+                } else {
+                    const circle = this.circle.querySelector('circle');
+                    circle.setAttribute('cx', divWidth / 2);
+                    circle.setAttribute('cy', divHeight / 2);
+                    circle.setAttribute('r', radius);
+                    circle.querySelector('animate').setAttribute('values', `${radius};${radius + 5};${radius}`);
+                }
+            } else {
+                if (this.circle) {
+                    this.circle.remove();
+                    this.circle = null;
+                }
+            }
+        }
+        
+        
 
         onRemove() {
             if (this.div) {
