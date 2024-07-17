@@ -1,5 +1,4 @@
 import GlobalTimer from "../anim/GameTimer.js";
-import MainPanel from "../control/MainPanel.js";
 
 export default function createUnitOverlayClass() {
     return class UnitOverlay extends google.maps.OverlayView {
@@ -19,6 +18,7 @@ export default function createUnitOverlayClass() {
 
         constructor(info) {
             super();
+            this.polyline = null;
             this.degree = 0;
             this.#id = info.googleId;
             this.#size = info.size;
@@ -28,11 +28,6 @@ export default function createUnitOverlayClass() {
             this.#destinationPosition = new google.maps.LatLng(info.destinationPosition.lat, info.destinationPosition.lng);
             this.calculatedSpeed = info.speed / 3600;
             this.#startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
-            if (info.startTime) {
-                console.log("infoi.startTime exists!!!", info.startTime);
-            } else {
-                console.log("infoi.startTime does not exist!!!", info.startTime);
-            }
             this.#userName = info.userName;
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
         }
@@ -110,6 +105,7 @@ export default function createUnitOverlayClass() {
             this.div.style.borderWidth = "0px";
             this.div.style.position = "absolute";
             this.div.style.cursor = "pointer"; // 마우스 커서 스타일 추가
+
             const img = new Image();
             img.onload = () => {
                 this.div.append(img);
@@ -118,26 +114,23 @@ export default function createUnitOverlayClass() {
             img.style.width = "100%";
             img.style.height = "100%";
             img.style.position = "absolute";
+
             const panes = this.getPanes();
             panes.overlayMouseTarget.appendChild(this.div);
 
-            //Name
+            // Name
             this.#createUserNameDiv();
             this.#addEventListeners();
         }
 
         #addEventListeners() {
-            // set this as locally scoped var so event does not get confused
             var me = this;
 
-            // Add a listener - we'll accept clicks anywhere on this div, but you may want
-            // to validate the click i.e. verify it occurred in some portion of your overlay.
             google.maps.event.addDomListener(this.div, 'click', function (event) {
                 event.stopPropagation(); // 이벤트 전파 중지
                 google.maps.event.trigger(me, 'click');
             });
 
-            // Add your custom click handling code here
             google.maps.event.addListener(me, 'click', function () {
                 me.isSelected = !me.isSelected;
                 me.#updateCircle();
@@ -151,7 +144,6 @@ export default function createUnitOverlayClass() {
                 this.userNameDiv.innerHTML = this.#userName;
                 this.userNameDiv.style.color = 'white';
                 this.userNameDiv.style.textShadow = '1px 1px 1px black';
-                //text size
                 this.userNameDiv.style.fontSize = '12px';
                 const panes = this.getPanes();
                 panes.overlayMouseTarget.appendChild(this.userNameDiv);
@@ -169,14 +161,10 @@ export default function createUnitOverlayClass() {
                 this.div.style.width = `${ne.x - sw.x}px`;
                 this.div.style.height = `${sw.y - ne.y}px`;
 
-                // 현재 div의 회전 각도를 가져옵니다.
                 const currentDegree = parseFloat(this.div.style.transform.replace(/[^\d.]/g, '')) || 0;
-                // 목표 각도와의 차이를 계산합니다.
                 let degreeDifference = this.degree - currentDegree;
-                // 차이를 -180과 180 사이의 값으로 조정합니다.
                 degreeDifference += (degreeDifference > 180) ? -360 : (degreeDifference < -180) ? 360 : 0;
 
-                // 최종 회전 각도를 계산합니다.
                 const finalDegree = currentDegree + degreeDifference;
                 this.finalDegree = finalDegree;
 
@@ -200,8 +188,8 @@ export default function createUnitOverlayClass() {
         #updateCircle() {
             const divWidth = this.div.offsetWidth;
             const divHeight = this.div.offsetHeight;
-            const radius = Math.max(divWidth, divHeight) / 2 + 10; // this.div를 감쌀 수 있도록 조정
-        
+            const radius = Math.max(divWidth, divHeight) / 2 + 10;
+
             if (this.isSelected) {
                 if (!this.circle) {
                     this.circle = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -212,7 +200,7 @@ export default function createUnitOverlayClass() {
                     this.circle.style.height = "100%";
                     this.circle.style.overflow = "visible";
                     this.circle.innerHTML = `
-                        <circle cx="${divWidth / 2}" cy="${divHeight / 2}" r="${radius}" fill="none" stroke="green" stroke-width="2">
+                        <circle cx="${divWidth / 2}" cy="${divHeight / 2}" r="${radius}" fill="none" stroke="#00FF00" stroke-width="2">
                             <animate attributeName="r" values="${radius};${radius + 5};${radius}" dur="1s" repeatCount="indefinite" />
                         </circle>
                     `;
@@ -231,13 +219,19 @@ export default function createUnitOverlayClass() {
                 }
             }
         }
-        
-        
 
         onRemove() {
             if (this.div) {
                 this.div.parentNode.removeChild(this.div);
                 this.div = null;
+            }
+            if (this.markerOverlay) {
+                this.markerOverlay.setMap(null);
+                this.markerOverlay = null;
+            }
+            if (this.polyline) {
+                this.polyline.setMap(null);
+                this.polyline = null;
             }
         }
 
@@ -263,10 +257,15 @@ export default function createUnitOverlayClass() {
             const distanceTraveled = this.#calculateDistanceTraveled(elapsedTime);
             const currentLatLng = this.#getCurrentPosition(this.#startPosition, this.#destinationPosition, distanceTraveled);
             if (!currentLatLng || this.#hasReachedDestination(currentLatLng)) {
-                console.log("Reached destination", currentLatLng.lat(), currentLatLng.lng(), this.#destinationPosition.lat(), this.#destinationPosition.lng());
                 this.#setBounds(this.#destinationPosition.lat(), this.#destinationPosition.lng(), this.#size);
                 this.draw();
                 this.#moving = false;
+                
+                if (this.polyline) {
+                    this.polyline.setMap(null);
+                    this.polyline = null;
+                }
+                
                 return;
             }
             this.#updateOverlayPosition(currentLatLng);
@@ -274,10 +273,11 @@ export default function createUnitOverlayClass() {
             if (this.marker) {
                 this.marker.setPosition(this.getCurrentCenter());
             }
+            this.updatePolyline(currentLatLng);
         }
 
         #hasReachedDestination(currentLatLng) {
-            return google.maps.geometry.spherical.computeDistanceBetween(currentLatLng, this.#destinationPosition) < 1; // Considered reached if within 1 meters
+            return google.maps.geometry.spherical.computeDistanceBetween(currentLatLng, this.#destinationPosition) < 1;
         }
 
         #getElapsedTimeInSeconds() {
@@ -321,15 +321,8 @@ export default function createUnitOverlayClass() {
                 this.updateMarkerIcon(this.degree);
             }
 
-            console.log("move!!!!!!!!!!!!!!", startPosition, destinationPosition, startTime);
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
-
-
-            console.log("startTime", startTime);
-            //MainPanel.getInstance().addChat({ sender: "move()", message: `startTime : ${startTime}` });
-            console.log("server time", GlobalTimer.getInstance().getServerTime());
-            //MainPanel.getInstance().addChat({ sender: "move()", message: `server time : ${GlobalTimer.getInstance().getServerTime()}` });
 
             if (!clicked) {
                 this.#startTime = GlobalTimer.getInstance().getServerTime();
@@ -337,32 +330,27 @@ export default function createUnitOverlayClass() {
                 this.#startTime = startTime;
             }
 
-
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
             this.#moving = true;
 
-            // 마커의 위치를 실시간으로 업데이트합니다.
             if (this.marker) {
-                // 마커의 위치를 업데이트합니다.
                 this.marker.setPosition(this.getCurrentCenter());
             }
+
+            this.updatePolyline(this.getCurrentCenter());
         }
 
         updateMarkerIcon(angle) {
             this.rotateImage(this.image, angle, rotatedImageUrl => {
                 this.marker.setIcon({
                     url: rotatedImageUrl,
-                    // Make sure to keep the existing icon size and anchor if needed
                     scaledSize: new google.maps.Size(this.#markerSize, this.#markerSize),
                     anchor: new google.maps.Point(this.#markerSize / 2, this.#markerSize / 2)
                 });
             });
         }
 
-
-        // 수정된 showMarker 메서드
         showMarker() {
-            /* global google */
             const mapsSize = new google.maps.Size(this.#markerSize, this.#markerSize);
             const anchor = new google.maps.Point(this.#markerSize / 2, this.#markerSize / 2);
             if (!this.marker) {
@@ -376,9 +364,14 @@ export default function createUnitOverlayClass() {
                             anchor: anchor
                         },
                     });
+
+                    // 마커에 클릭 이벤트 리스너 추가
+                    google.maps.event.addListener(this.marker, 'click', () => {
+                        this.isSelected = !this.isSelected;
+                        this.#updateCircle();
+                    });
                 });
             } else {
-                // 이미 마커가 존재하면 이미지만 업데이트
                 this.rotateImage(this.image, this.finalDegree ? this.finalDegree : 0, rotatedImageUrl => {
                     this.marker.setIcon({
                         url: rotatedImageUrl,
@@ -419,6 +412,32 @@ export default function createUnitOverlayClass() {
             };
 
             image.src = imageUrl;
+        }
+
+        updatePolyline(currentLatLng) {
+            const path = [currentLatLng, this.#destinationPosition];
+            if (!this.polyline) {
+                this.polyline = new google.maps.Polyline({
+                    path: path,
+                    geodesic: true,
+                    strokeColor: '#FF4444',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                    icons: [{
+                        icon: {
+                            path: 'M 0,-1 0,1',
+                            strokeOpacity: 1,
+                            scale: 4
+                        },
+                        offset: '0',
+                        repeat: '20px'
+                    }],
+                    map: this.map // 폴리라인을 지도에 추가
+                });
+            } else {
+                this.polyline.setPath(path);
+                this.polyline.setMap(this.map);
+            }
         }
     }
 }
