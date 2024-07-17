@@ -127,17 +127,22 @@ export default function createUnitOverlayClass() {
 
         #addEventListeners() {
             var me = this;
-
+        
             google.maps.event.addDomListener(this.div, 'click', function (event) {
                 event.stopPropagation(); // 이벤트 전파 중지
                 google.maps.event.trigger(me, 'click');
             });
-
+        
             google.maps.event.addListener(me, 'click', function () {
                 me.isSelected = !me.isSelected;
                 me.#updateCircle();
+                if (me.isSelected) {
+                    const currentTime = GlobalTimer.getInstance().getServerTime();
+                    me.move(me.startPosition, me.#destinationPosition, currentTime, true);
+                }
             });
         }
+        
 
         #createUserNameDiv() {
             if (!this.userNameDiv) {
@@ -316,29 +321,50 @@ export default function createUnitOverlayClass() {
 
         move(startPosition, destinationPosition, startTime, clicked) {
             this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
-
+        
             if (this.marker) {
                 this.updateMarkerIcon(this.degree);
             }
-
+        
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
-
+        
             if (!clicked) {
                 this.#startTime = GlobalTimer.getInstance().getServerTime();
             } else {
                 this.#startTime = startTime;
             }
-
+        
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
             this.#moving = true;
-
+        
             if (this.marker) {
                 this.marker.setPosition(this.getCurrentCenter());
             }
-
+        
             this.updatePolyline(this.getCurrentCenter());
+        
+            // Calculate and display arrival time
+            const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(this.#startPosition, this.#destinationPosition);
+            const travelTimeSeconds = totalDistance / (this.#speed / 3.6); // speed in m/s
+        
+            const arrivalTime = new Date(this.#startTime + travelTimeSeconds * 1000);
+        
+            const year = arrivalTime.getFullYear();
+            const month = arrivalTime.getMonth() + 1; // Months are zero-indexed
+            const day = arrivalTime.getDate();
+            const hours = arrivalTime.getHours();
+            const minutes = arrivalTime.getMinutes();
+            const seconds = arrivalTime.getSeconds();
+        
+            const formattedDate = arrivalTime.toLocaleDateString();
+            const formattedTime = arrivalTime.toLocaleTimeString();
+        
+            MainPanel.getInstance().addChat({ sender: "안내", message: `도착 예정 시간: ${formattedDate} ${formattedTime} (소요시간: ${hours}시간 ${minutes}분 ${seconds}초)` });
         }
+        
+        
+        
 
         updateMarkerIcon() {
             if (this.marker) {
