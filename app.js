@@ -127,7 +127,7 @@ io.on('connection', (socket) => {
         const destLngString = unit.destinationPosition.lng.toString();
         const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
         const idString = unit.id.toString();
-        const userName = await dbm.getDisplayNameByGoogleId(msg.sender);
+        const userName = await dbm.getDisplayNameByGoogleId(unit.id);
         const serverTime = Date.now();
         io.emit('serverTime', { currentTime: Date.now() });
 
