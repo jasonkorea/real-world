@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Unit = require('../models/Unit');
-const User = require('../models/user');
+const User = require('../models/UserModel');
 const Decimal128 = mongoose.Types.Decimal128;
 
 exports.createOrUpdateUnit = async (msg) => {
