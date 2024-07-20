@@ -63,7 +63,7 @@ const io = socketio(server);
 
 
 //clear all units
-dbm.clearAllUnits();
+//dbm.clearAllUnits();
 
 
 

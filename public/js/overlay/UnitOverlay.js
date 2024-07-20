@@ -17,6 +17,7 @@ export default function createUnitOverlayClass() {
         degree;
         isSelected = false;
         #followInterval;
+        #isMe = false;
 
         constructor(info) {
             super();
@@ -31,6 +32,7 @@ export default function createUnitOverlayClass() {
             this.calculatedSpeed = info.speed / 3600;
             this.#startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
             this.#userName = info.userName;
+            this.#isMe = info.isMe;
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
         }
 
@@ -352,48 +354,54 @@ export default function createUnitOverlayClass() {
         }
 
         move(startPosition, destinationPosition, startTime, clicked) {
+            // Calculate the heading from start to destination position
             this.degree = google.maps.geometry.spherical.computeHeading(new google.maps.LatLng(startPosition), new google.maps.LatLng(destinationPosition));
-
+        
+            // Update the marker icon if it exists
             if (this.marker) {
                 this.updateMarkerIcon(this.degree);
             }
-
+        
+            // Set the start and destination positions
             this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
             this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
-
-            if (!clicked) {
-                this.#startTime = GlobalTimer.getInstance().getServerTime();
-            } else {
-                this.#startTime = startTime;
-            }
-
+        
+            // Set the start time based on whether the move was initiated by a click
+            this.#startTime = clicked ? startTime : GlobalTimer.getInstance().getServerTime();
+        
+            // Set the bounds for the movement
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
             this.#moving = true;
-
+        
+            // Update the marker position if it exists
             if (this.marker) {
                 this.marker.setPosition(this.getCurrentCenter());
             }
-
+        
+            // Update the polyline to the current center
             this.updatePolyline(this.getCurrentCenter());
-
-            // Calculate and display arrival time
+        
+            if (!this.#isMe) {
+                return;
+            }
+            // Calculate the total distance and travel time
             const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(this.#startPosition, this.#destinationPosition);
-            const travelTimeSeconds = totalDistance / (this.#speed / 3.6); // speed in m/s
+            const travelTimeSeconds = totalDistance / (this.#speed / 3.6);
+            console.log("speed", this.#speed);
+            console.log("totalDistance", totalDistance);
+            console.log("travelTimeSeconds", travelTimeSeconds);
 
+        
+            // Calculate the arrival time
             const arrivalTime = new Date(this.#startTime + travelTimeSeconds * 1000);
-
-            const hours = arrivalTime.getHours();
-            const minutes = arrivalTime.getMinutes();
-            const seconds = arrivalTime.getSeconds();
-
+        
+            // Format the date and time for display
             const formattedDate = arrivalTime.toLocaleDateString();
             const formattedTime = arrivalTime.toLocaleTimeString();
-
-            MainPanel.getInstance().addChat({ sender: "안내", message: `도착 예정 시간: ${formattedDate} ${formattedTime} (소요시간: ${hours}시간 ${minutes}분 ${seconds}초)` });
+        
+            // Display the arrival time and travel duration
+            MainPanel.getInstance().addChat({ sender: "안내", message: `도착 예정 시간: ${formattedDate} ${formattedTime}` });
         }
-
-
-
 
         updateMarkerIcon() {
             if (this.marker) {

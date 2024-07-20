@@ -41,12 +41,22 @@ export default class RealMap {
         while (!this.position) {
             await new Promise(resolve => {
                 console.log("waiting for position...");
-                setTimeout(resolve, 1000);
+                setTimeout(resolve, 500);
             });
         }
 
-        const marker = await this.#createMarker();
-        marker.setMap(this.map);
+        //const marker = await this.#createMarker();
+        //marker.setMap(this.map);
+        this.addUnit({
+            id: this.#userId+1,
+            startPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
+            destinationPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
+            size: 20,
+            speed: 10,
+            image: '../resources/cc.png',
+            userName: '기지'
+        });
+        
 
 
         this._addControl();
@@ -58,9 +68,7 @@ export default class RealMap {
 
             let unit = this.units.get(this.#userId);
             let center;
-            let isNew = !unit;
             if (!unit) {
-                isNew = true;
                 console.log("unit이 없어서 생성. 단지 생성 요청하는 용도");
             } else {
                 center = await unit.getCurrentCenter();
@@ -73,7 +81,7 @@ export default class RealMap {
                 "type": "move",
                 "sender": this.#userId,
                 "unitInfo": {
-                    "startPosition": isNew ? event.latLng.toJSON() : startPosition,
+                    "startPosition": !unit ? event.latLng.toJSON() : startPosition,
                     "destinationPosition": event.latLng.toJSON(),
                     "image": "../resources/airplane.png",
                     "size": 100,
@@ -99,13 +107,19 @@ export default class RealMap {
         /* global google */
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
+        const img = document.createElement("img");
+        //img.src = "https://projectj.tplinkdns.com/resources/cc.png";
+        img.src = "https://projectj.tplinkdns.com/resources/small_cc.png";
+        
         // The marker, positioned at Uluru
         return new AdvancedMarkerElement({
             position: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
             map: this.map,
-            title: "Here!"
+            content: img,
+            title: "Here!",
         });
     }
+
 
     #addGPSListener() {
         GPS.getInstance().addListener({
@@ -160,6 +174,8 @@ export default class RealMap {
 
     addUnit(unitInfo) {
         console.log("----------------- unitInfo : ", unitInfo);
+        
+        unitInfo.isMe = unitInfo.googleId === this.#userId;
         const unit = new this.UnitOverlay(unitInfo);
         this.units.set(unit.id, unit);
         unit.setMap(this.map);
@@ -198,6 +214,7 @@ export default class RealMap {
             unit.size = message.unitInfo.size;
             unit.speed = message.unitInfo.speed;
             unit.image = message.unitInfo.image;
+            unit.isMe = message.sender === this.#userId;
             unit.move(message.unitInfo.startPosition, message.unitInfo.destinationPosition, message.unitInfo.startTime, true);
         }
     }
