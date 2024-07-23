@@ -180,6 +180,7 @@ export default class RealMap {
         console.log("----------------- unitInfo : ", unitInfo);
 
         unitInfo.isMe = unitInfo.googleId === this.#userId;
+        if (unitInfo.isMe) unitInfo.zIndex = 1; else unitInfo.zIndex = 0;
         const unit = new this.UnitOverlay(unitInfo);
         this.units.set(unit.id, unit);
         unit.setMap(this.map);

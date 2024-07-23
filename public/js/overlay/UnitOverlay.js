@@ -18,6 +18,7 @@ export default function createUnitOverlayClass() {
         isSelected = false;
         #followInterval;
         #isMe = false;
+        #zIndex = 0;
 
         constructor(info) {
             super();
@@ -34,6 +35,9 @@ export default function createUnitOverlayClass() {
             this.#userName = info.userName;
             this.#isMe = info.isMe;
             this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
+            if (info.zIndex) {
+                this.#zIndex = info.zIndex;
+            }
         }
 
         #setBounds(lat, lng, size) {
@@ -206,6 +210,8 @@ export default function createUnitOverlayClass() {
 
                 this.div.style.transition = 'transform 1s ease-out';
                 this.div.style.transform = `rotate(${finalDegree}deg)`;
+
+                this.div.style.zIndex = this.#zIndex;
             }
 
             this.#updateUserNameDiv(sw, ne);
