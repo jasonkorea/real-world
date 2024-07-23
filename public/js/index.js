@@ -80,16 +80,7 @@ async function initMap() {
       console.log(`[${message.sender}] : ${message.message}`);
       mainPanel.addChat(message);
     } else if (message.type === "move") {
-      const unit = GameMap.getInstance().getUnits().get(message.sender);
-      if (unit) {
-        console.log("unit 있음", message);
-        GameMap.getInstance().moveUnit(message);
-      } else {
-        console.log("unit 없음", message);
-        const unitInfo = getUnitInfoFromMessage(message);
-        GameMap.getInstance().addUnit(unitInfo);
-        console.log("unit 추가 됨", unit);
-      }
+      GameMap.getInstance().moveOrAddUnit(message);
     } else if (message.type === "notice") {
       mainPanel.addChat(message);
     } else if (message.type === 'serverTime') {
@@ -129,24 +120,6 @@ async function initMap() {
   });
 }
 // ============================================================= 
-
-//m message로부터 unit 정보 추출하는 함수 작성
-function getUnitInfoFromMessage(message) {
-  const { sender: googleId, unitInfo } = message;
-  const { startPosition, destinationPosition, size, speed, startTime, userName } = unitInfo;
-  const image = '../resources/airplane.png';
-
-  return {
-    googleId,
-    startPosition: { lat: startPosition.lat, lng: startPosition.lng },
-    destinationPosition: { lat: destinationPosition.lat, lng: destinationPosition.lng },
-    size,
-    speed,
-    image,
-    startTime,
-    userName
-  };
-}
 
 function setUserInfoFromHeader(user) {
   const body = document.querySelector('body');

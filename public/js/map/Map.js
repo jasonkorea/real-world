@@ -27,9 +27,6 @@ export default class RealMap {
         this.toggleUnitDisplayBasedOnZoom();
     }
 
-
-
-
     async #initMap() {
         console.log('initMap');
         if (this.isInitialized) {
@@ -49,7 +46,7 @@ export default class RealMap {
 
         //const marker = await this.#createMarker();
         //marker.setMap(this.map);
-        this.addUnit({
+        this.#addUnit({
             id: this.#userId + 1,
             startPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
             destinationPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
@@ -177,7 +174,7 @@ export default class RealMap {
         this.map.controls[google.maps.ControlPosition.RIGHT_TOP].push(controlDiv);
     }
 
-    addUnit(unitInfo) {
+    #addUnit(unitInfo) {
         console.log("startPosition lat lng = ", unitInfo.startPosition.lat, unitInfo.startPosition.lng);
         console.log("destinationPosition lat lng = ", unitInfo.destinationPosition.lat, unitInfo.destinationPosition.lng);
         console.log("----------------- unitInfo : ", unitInfo);
@@ -211,7 +208,7 @@ export default class RealMap {
         this.map.setZoom(16);
     }
 
-    moveUnit(message) {
+    #moveUnit(message) {
         const unit = this.units.get(message.sender);
         console.log(unit);
         console.log('move unit startTime : ', message.unitInfo.startTime);
@@ -248,6 +245,36 @@ export default class RealMap {
             }
         });
     }
+
+    moveOrAddUnit(message) {
+        const unit = this.units.get(message.sender);
+        if (unit) {
+            console.log("unit 있음", message);
+            this.#moveUnit(message);
+        } else {
+            console.log("unit 없음", message);
+            const unitInfo = this.#getUnitInfoFromMessage(message);
+            this.#addUnit(unitInfo);
+            console.log("unit 추가 됨", unit);
+        }
+    }
+
+    #getUnitInfoFromMessage(message) {
+        const { sender: googleId, unitInfo } = message;
+        const { startPosition, destinationPosition, size, speed, startTime, userName } = unitInfo;
+        const image = '../resources/airplane.png';
+      
+        return {
+          googleId,
+          startPosition: { lat: startPosition.lat, lng: startPosition.lng },
+          destinationPosition: { lat: destinationPosition.lat, lng: destinationPosition.lng },
+          size,
+          speed,
+          image,
+          startTime,
+          userName
+        };
+      }
 
     static getInstance() {
         if (!RealMap.instance) {
