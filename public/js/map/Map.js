@@ -3,6 +3,8 @@ import GPS from "../location/GPS.js";
 import UnitOverlay from "../overlay/UnitOverlay.js";
 import Socket from "../socket/Socket.js";
 import GlobalTimer from "../anim/GameTimer.js";
+import MainPanel from "../control/MainPanel.js";
+import GameTimer from "../anim/GameTimer.js";
 
 export default class RealMap {
     #map;
@@ -48,7 +50,7 @@ export default class RealMap {
         //const marker = await this.#createMarker();
         //marker.setMap(this.map);
         this.addUnit({
-            id: this.#userId+1,
+            id: this.#userId + 1,
             startPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
             destinationPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
             size: 20,
@@ -56,8 +58,6 @@ export default class RealMap {
             image: '../resources/cc.png',
             userName: '기지'
         });
-        
-
 
         this._addControl();
 
@@ -88,7 +88,11 @@ export default class RealMap {
                     "speed": 400,
                 }
             });
+        });
 
+        this.#map.addListener('dblclick', async (event) => {
+            console.log('dblclicked!', event.latLng.toJSON());
+            MainPanel.getInstance().addChat({ sender: "Map(DblClick)", message: `${event.latLng.toJSON().lat}, ${event.latLng.toJSON().lng}` });
         });
     }
 
@@ -103,6 +107,7 @@ export default class RealMap {
         this.position = position;
     }
 
+    // eslint-disable-next-line no-unused-private-class-members
     async #createMarker() {
         /* global google */
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -110,7 +115,7 @@ export default class RealMap {
         const img = document.createElement("img");
         //img.src = "https://projectj.tplinkdns.com/resources/cc.png";
         img.src = "https://projectj.tplinkdns.com/resources/small_cc.png";
-        
+
         // The marker, positioned at Uluru
         return new AdvancedMarkerElement({
             position: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
@@ -173,13 +178,18 @@ export default class RealMap {
     }
 
     addUnit(unitInfo) {
+        console.log("startPosition lat lng = ", unitInfo.startPosition.lat, unitInfo.startPosition.lng);
+        console.log("destinationPosition lat lng = ", unitInfo.destinationPosition.lat, unitInfo.destinationPosition.lng);
         console.log("----------------- unitInfo : ", unitInfo);
-        
+
         unitInfo.isMe = unitInfo.googleId === this.#userId;
         const unit = new this.UnitOverlay(unitInfo);
         this.units.set(unit.id, unit);
         unit.setMap(this.map);
         unit.move(unitInfo.startPosition, unitInfo.destinationPosition, unitInfo.startTime, true);
+
+        // 애니메이션 루프에 추가
+        GameTimer.getInstance().addOverlay(unit);
         return unit;
     }
 

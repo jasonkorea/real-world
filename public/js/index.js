@@ -67,7 +67,7 @@ async function initMap() {
   });
 
 
-  Socket.getInstance().sendMessage({type: 'serverTime'});
+  Socket.getInstance().sendMessage({ type: 'serverTime' });
 
   //1초에 한번씩 현재 client 시간 출력..
   // setInterval(() => {
@@ -83,25 +83,39 @@ async function initMap() {
       const unit = GameMap.getInstance().getUnits().get(message.sender);
       if (unit) {
         console.log("unit 있음", message);
-
         GameMap.getInstance().moveUnit(message);
       } else {
         console.log("unit 없음", message);
-        addUnit({
-          id: message.sender,
-          startPosition: message.unitInfo.startPosition,
-          destinationPosition: message.unitInfo.destinationPosition,
-          size: message.unitInfo.size,
-          speed: message.unitInfo.speed,
-          image: '../resources/airplane.png',
-          startTime: message.unitInfo.startTime,
-          userName: message.unitInfo.userName
-        });
+
+        const id = message.sender;
+        const startPosition = message.unitInfo.startPosition;
+        const destinationPosition = message.unitInfo.destinationPosition;
+        const size = message.unitInfo.size;
+        const speed = message.unitInfo.speed;
+        const image = '../resources/airplane.png';
+        const startTime = message.unitInfo.startTime;
+        const userName = message.unitInfo.userName
+
+        const unitInfo = {
+          "googleId": id,
+          "startPosition": { lat: startPosition.lat, lng: startPosition.lng },
+          "destinationPosition": { lat: destinationPosition.lat, lng: destinationPosition.lng },
+          "size": size,
+          "speed": speed,
+          "image": image,
+          "startTime": startTime,
+          "userName": userName
+        };
+
+        GameMap.getInstance().addUnit(unitInfo);
+        console.log("unit 추가 됨", unit);
       }
     } else if (message.type === "notice") {
       mainPanel.addChat(message);
     } else if (message.type === 'serverTime') {
       GameTimer.getInstance().setServerTimeOffset(message.data - Date.now());
+    } else if (message.type === 'move_missile') {
+      /* empty */
     }
   });
 
@@ -125,31 +139,6 @@ async function initMap() {
       "type": "requestInitialData",
       "sender": user.googleId
     });
-  }
-
-  function addUnit(info) {
-    const startPosition = info.startPosition;
-    const destinationPosition = info.destinationPosition;
-    const size = info.size;
-    const speed = info.speed;
-    const image = info.image;
-    const userName = info.userName;
-    console.log("startPosition lat lng = ", startPosition.lat, startPosition.lng);
-    console.log("destinationPosition lat lng = ", destinationPosition.lat, destinationPosition.lng);
-
-    const unit = GameMap.getInstance().addUnit({
-      "googleId": info.id,
-      "startPosition": { lat: startPosition.lat, lng: startPosition.lng },
-      "destinationPosition": { lat: destinationPosition.lat, lng: destinationPosition.lng },
-      "size": size,
-      "speed": speed,
-      "image": image,
-      "startTime": info.startTime,
-      "userName": userName
-    });
-    GameTimer.getInstance().addOverlay(unit);
-    
-    console.log("unit 추가 됨", unit);
   }
 
   visibilitychange((visibility) => {
