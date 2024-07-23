@@ -56,6 +56,25 @@ export default class RealMap {
             userName: '기지'
         });
 
+        // 사실 위 코드는 임시로 넣은 것이다. 실제로는 서버에서 받은 정보를 이용하여 unit을 생성해야 한다.
+        // 다음의 코드도 사실 임시 코드이고, 서버는 unique한 id를 생성해야 한다.
+        /*
+        const centerIdFromUserId = this.#userId / 2;
+        Socket.getInstance().sendMessage({
+            "type": "move",
+            "sender":centerIdFromUserId,
+            "unitInfo": {
+                "startPosition": this.position.coords.latitud,
+                "destinationPosition": this.position.coords.longitude,
+                "image": '../resources/cc.png',
+                "size": 20,
+                "speed": 10,
+                "userName": '기지'
+            }
+        });
+        */
+        
+
         this._addControl();
 
         this.#map.addListener('click', async (event) => {
