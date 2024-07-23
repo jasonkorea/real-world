@@ -86,27 +86,7 @@ async function initMap() {
         GameMap.getInstance().moveUnit(message);
       } else {
         console.log("unit 없음", message);
-
-        const id = message.sender;
-        const startPosition = message.unitInfo.startPosition;
-        const destinationPosition = message.unitInfo.destinationPosition;
-        const size = message.unitInfo.size;
-        const speed = message.unitInfo.speed;
-        const image = '../resources/airplane.png';
-        const startTime = message.unitInfo.startTime;
-        const userName = message.unitInfo.userName
-
-        const unitInfo = {
-          "googleId": id,
-          "startPosition": { lat: startPosition.lat, lng: startPosition.lng },
-          "destinationPosition": { lat: destinationPosition.lat, lng: destinationPosition.lng },
-          "size": size,
-          "speed": speed,
-          "image": image,
-          "startTime": startTime,
-          "userName": userName
-        };
-
+        const unitInfo = getUnitInfoFromMessage(message);
         GameMap.getInstance().addUnit(unitInfo);
         console.log("unit 추가 됨", unit);
       }
@@ -118,7 +98,6 @@ async function initMap() {
       /* empty */
     }
   });
-
 
   // MainPanel에 유저 정보를 설정한다.
   MainPanel.getInstance().setUserInfo(user.getProfileInfo());
@@ -150,6 +129,24 @@ async function initMap() {
   });
 }
 // ============================================================= 
+
+//m message로부터 unit 정보 추출하는 함수 작성
+function getUnitInfoFromMessage(message) {
+  const { sender: googleId, unitInfo } = message;
+  const { startPosition, destinationPosition, size, speed, startTime, userName } = unitInfo;
+  const image = '../resources/airplane.png';
+
+  return {
+    googleId,
+    startPosition: { lat: startPosition.lat, lng: startPosition.lng },
+    destinationPosition: { lat: destinationPosition.lat, lng: destinationPosition.lng },
+    size,
+    speed,
+    image,
+    startTime,
+    userName
+  };
+}
 
 function setUserInfoFromHeader(user) {
   const body = document.querySelector('body');
