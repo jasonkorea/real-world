@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Define Schemes
 const unitSchema = new mongoose.Schema({
-    id: { type: mongoose.Schema.Types.Decimal128, required: true },
+    id: { type: String, required: true },
     size: { type: Number, required: true },
     speed: { type: Number, required: true },
     image: { type: String, required: true },

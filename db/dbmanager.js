@@ -2,10 +2,13 @@ const mongoose = require('mongoose');
 const Unit = require('../models/unit');
 const User = require('../models/UserModel');
 const Decimal128 = mongoose.Types.Decimal128;
+const Util = require('../util/util');
 
 exports.createOrUpdateUnit = async (msg) => {
     try {
-
+        if (msg.sender == -1) {
+            msg.sender = Util.getWorldId();
+        }
         const user = await User.findOne({ googleId: msg.sender });
         if (!user) {
             console.log('사용자를 찾을 수 없습니다.');
@@ -121,7 +124,7 @@ exports.getDisplayNameByGoogleId = async (googleId) => {
             googleId:
                 googleId
         });
-        return user.displayName;
+        return user ? user.displayName : undefined;
     }
     catch (error) {
         console.error(error);

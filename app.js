@@ -12,10 +12,13 @@ const https = require('https');
 const socketio = require('socket.io');
 const dbm = require('./db/dbmanager');
 const Util = require('./util/util');
+const User = require('./models/UserModel');
 
 dotenv.config({ path: './config/config.env' });
 var app = express();
 const PORT = process.env.PORT || 3000;
+
+createWorldUser();
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -64,7 +67,7 @@ const io = socketio(server);
 
 
 //clear all units
-//dbm.clearAllUnits();
+dbm.clearAllUnits();
 
 
 
@@ -74,7 +77,7 @@ const io = socketio(server);
 // 클라이언트 연결 이벤트 처리
 io.on('connection', (socket) => {
 
-  console.log('A user connected', Util.generate21CharHash());
+  console.log('A user connected');
   socket.emit('serverTime', { currentTime: Date.now() });
   socket.emit('message', { type: 'notice', sender: 'server', message: '현재 위치를 인식중입니다. 인식 후 "내 유닛으로 이동" 버튼을 눌러주세요.' });
 
@@ -90,7 +93,6 @@ io.on('connection', (socket) => {
       socket.emit('message', { type: 'serverTime', data: Date.now() });
     } else if (msg.type === 'move') {
       //get displayName from googleId
-
       const freshUnit = await dbm.createOrUpdateUnit(msg);
       console.log('freshUnit : id', freshUnit.id);
       const userName = await dbm.getDisplayNameByGoogleId(msg.sender);
@@ -158,6 +160,25 @@ io.on('connection', (socket) => {
   });
 });
 
+async function createWorldUser() {
+  const worldUser = await User.findOne({ googleId: Util.getWorldId() });
+  if (worldUser) {
+    console.log('worldUser exists');
+  } else {
+    console.log('worldUser does not exist. Creating worldUser');
+    const worldUser = {
+      googleId: Util.getWorldId(),
+      displayName: 'world',
+      firstName: 'world',
+      lastName: 'world',
+      image: 'world',
+      email: 'world'
+    }
+    await User.create(worldUser);
+  }
+}
+
 server.listen(PORT, () => {
   console.log(`listening at ${PORT}`);
 });
+

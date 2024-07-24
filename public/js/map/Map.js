@@ -46,14 +46,17 @@ export default class RealMap {
 
         //const marker = await this.#createMarker();
         //marker.setMap(this.map);
-        this.#addUnit({
-            id: this.#userId + 1,
-            startPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
-            destinationPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
-            size: 20,
-            speed: 10,
-            image: '../resources/cc.png',
-            userName: '기지'
+        Socket.getInstance().sendMessage({
+            sender: -1,
+            type: 'move',
+            unitInfo: {
+                startPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
+                destinationPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
+                size: 20,
+                speed: 10,
+                image: '../resources/cc.png',
+                userName: '기지'
+            }
         });
 
         // 사실 위 코드는 임시로 넣은 것이다. 실제로는 서버에서 받은 정보를 이용하여 unit을 생성해야 한다.
@@ -73,7 +76,7 @@ export default class RealMap {
             }
         });
         */
-        
+
 
         this._addControl();
 
@@ -283,18 +286,18 @@ export default class RealMap {
         const { sender: googleId, unitInfo } = message;
         const { startPosition, destinationPosition, size, speed, startTime, userName } = unitInfo;
         const image = '../resources/airplane.png';
-      
+
         return {
-          googleId,
-          startPosition: { lat: startPosition.lat, lng: startPosition.lng },
-          destinationPosition: { lat: destinationPosition.lat, lng: destinationPosition.lng },
-          size,
-          speed,
-          image,
-          startTime,
-          userName
+            googleId,
+            startPosition: { lat: startPosition.lat, lng: startPosition.lng },
+            destinationPosition: { lat: destinationPosition.lat, lng: destinationPosition.lng },
+            size,
+            speed,
+            image,
+            startTime,
+            userName
         };
-      }
+    }
 
     static getInstance() {
         if (!RealMap.instance) {
