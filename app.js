@@ -11,6 +11,7 @@ const path = require('path');
 const https = require('https');
 const socketio = require('socket.io');
 const dbm = require('./db/dbmanager');
+const Util = require('./util/util');
 
 dotenv.config({ path: './config/config.env' });
 var app = express();
@@ -73,7 +74,7 @@ const io = socketio(server);
 // 클라이언트 연결 이벤트 처리
 io.on('connection', (socket) => {
 
-  console.log('A user connected');
+  console.log('A user connected', Util.generate21CharHash());
   socket.emit('serverTime', { currentTime: Date.now() });
   socket.emit('message', { type: 'notice', sender: 'server', message: '현재 위치를 인식중입니다. 인식 후 "내 유닛으로 이동" 버튼을 눌러주세요.' });
 
