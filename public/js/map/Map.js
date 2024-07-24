@@ -285,7 +285,7 @@ export default class RealMap {
     #getUnitInfoFromMessage(message) {
         const { sender: googleId, unitInfo } = message;
         const { startPosition, destinationPosition, size, speed, startTime, userName } = unitInfo;
-        const image = '../resources/airplane.png';
+        const image = unitInfo.image;
 
         return {
             googleId,
