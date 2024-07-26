@@ -158,7 +158,7 @@ export default function createUnitOverlayClass() {
                 me.isSelected = !me.isSelected;
                 me.#updateCircle();
                 if (me.isSelected) {
-                    this.#followMarker();
+                    // this.#followMarker();
                 } else {
                     clearInterval(this.#followInterval);
                     this.#followInterval = null;
@@ -438,8 +438,8 @@ export default function createUnitOverlayClass() {
                     this.isSelected = !this.isSelected;
                     this.#updateCircle();
                     if (this.isSelected) {
-                        this.map.setZoom(16);
-                        this.#followMarker();
+                        //this.map.setZoom(16);
+                        //this.#followMarker();
                     } else {
                         clearInterval(this.#followInterval);
                         this.#followInterval = null;
