@@ -36,6 +36,8 @@ async function initMap() {
     zoomControl: false,
     mapTypeControl: false,
     clickableIcons: false,
+    //어두운 회색 배경
+    backgroundColor: "#2c5a71",
     styles: [
         {
             featureType: "poi",
