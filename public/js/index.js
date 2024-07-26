@@ -28,30 +28,107 @@ async function initMap() {
   // 구글 맵을 로드한다.
   /* global google */
   const { Map } = await google.maps.importLibrary("maps");
-  const map = new Map(document.getElementById("map"), {
+  const map = new google.maps.Map(document.getElementById("map"), {
     zoom: 17,
     center: { lat: 37.5665, lng: 126.9780 },
-    mapId: "ID_REAL_WORLD",
     disableDoubleClickZoom: true,
-    //disable street view
     streetViewControl: false,
-    //disable zoom control
-    //zoomControl: false,
-    //disable map type control
+    zoomControl: false,
     mapTypeControl: false,
     clickableIcons: false,
     styles: [
-      {
-        featureType: "poi",
-        elementType: "labels",
-        stylers: [
-          {
-            visibility: "off",
-          },
-        ],
-      },
+        {
+            featureType: "poi",
+            elementType: "labels",
+            stylers: [
+                {
+                    visibility: "off",
+                },
+            ],
+        },
+        {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [
+                {
+                    visibility: "simplified",
+                },
+            ],
+        },
+        {
+            featureType: "road",
+            elementType: "labels",
+            stylers: [
+                {
+                    visibility: "off",
+                },
+            ],
+        },
+        {
+            featureType: "transit",
+            elementType: "labels.icon",
+            stylers: [
+                {
+                    visibility: "off",
+                },
+            ],
+        },
+        {
+            featureType: "administrative",
+            elementType: "geometry",
+            stylers: [
+                {
+                    visibility: "off",
+                },
+            ],
+        },
+        {
+            featureType: "landscape",
+            elementType: "geometry",
+            stylers: [
+                {
+                    color: "#2c5a71",
+                },
+            ],
+        },
+        {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [
+                {
+                    color: "#193341",
+                },
+            ],
+        },
+        {
+            featureType: "landscape.natural",
+            elementType: "labels",
+            stylers: [
+                {
+                    visibility: "off",
+                },
+            ],
+        },
+        {
+            featureType: "landscape.man_made",
+            elementType: "geometry",
+            stylers: [
+                {
+                    color: "#334e87",
+                },
+            ],
+        },
+        {
+            featureType: "landscape.man_made",
+            elementType: "labels",
+            stylers: [
+                {
+                    visibility: "off",
+                },
+            ],
+        },
     ],
-  });
+});
 
   // 유저 정보를 설정한다.
   setUserInfoFromHeader(user);
