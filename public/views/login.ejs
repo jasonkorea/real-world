@@ -9,15 +9,69 @@
         integrity="sha256-46r060N2LrChLLb5zowXQ72/iKKNiw/lAmygmHExk/o=" crossorigin="anonymous" />
     <link rel="stylesheet" href="../stylesheets/login.css">
     <title>Login</title>
+    <style>
+        body {
+            background: url('../resources/main_image.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            max-width: 400px;
+            width: 100%;
+            margin: 0 20px;
+        }
+
+        .card {
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .card-content {
+            padding: 40px 20px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff003c, #ff8a00);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(255, 138, 0, 0.6);
+        }
+
+        .fab.fa-google {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container login-container">
-        <div class="card" style="margin-top:100px;">
+        <div class="card">
             <div class="card-content">
-                <div class="section" style="text-align: center;">
-                    <a href="/auth/google" class="btn red darken-1">
-                        <i class="fab fa-google left"></i> Log In With Google
+                <h4>Welcome to Real World</h4>
+                <div class="section">
+                    <a href="/auth/google" class="btn">
+                        <i class="fab fa-google"></i> Login With Google
                     </a>
                 </div>
             </div>
