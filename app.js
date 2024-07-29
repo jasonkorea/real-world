@@ -94,6 +94,10 @@ io.on('connection', (socket) => {
     } else if (msg.type === 'move') {
       //get displayName from googleId
       const freshUnit = await dbm.createOrUpdateUnit(msg);
+      if (!freshUnit) {
+        console.log('freshUnit is null');
+        return;
+      }
       console.log('freshUnit : id', freshUnit.id);
       const userName = await dbm.getDisplayNameByGoogleId(msg.sender);
       const response = {
