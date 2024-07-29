@@ -137,3 +137,82 @@ nav {
 #floating-panel .username {
   margin-right: 10px;
 }
+
+.popup {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: auto;
+    max-height: 80%;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.btn-game {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+.btn-game button {
+    width: 30%;
+    height: 50px;
+    margin: 10px 0;
+    background-color: #6c757d;
+    border: none;
+    color: white;
+    font-size: 18px;
+    border-radius: 10px;
+    transition: background-color 0.3s;
+}
+
+.btn-game button:hover {
+    background-color: #5a6268;
+}
+
+.btn-cancel {
+    width: 100%;
+    height: 50px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    background-color: #dc3545;
+    border: none;
+    color: white;
+    font-size: 18px;
+    border-radius: 10px;
+    text-align: center;
+    line-height: 50px;
+    transition: background-color 0.3s;
+}
+
+.btn-cancel:hover {
+    background-color: #c82333;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10000;
+}

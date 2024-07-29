@@ -281,6 +281,10 @@ export default class RealMap {
         controlUI.style.color = "white";
         controlUI.style.textAlign = "center";
         controlUI.style.borderBottom = "1px solid white";
+        controlUI.addEventListener("click", () => {
+            //this.moveToCurrentPosition();
+            this.moveCameraToUnit(this.#userId);
+        });
 
         // 현재 위치로 이동 버튼
         const moveToCurrentLocationUI = document.createElement("div");
@@ -289,17 +293,64 @@ export default class RealMap {
         moveToCurrentLocationUI.style.cursor = "pointer";
         moveToCurrentLocationUI.style.color = "white";
         moveToCurrentLocationUI.style.textAlign = "center";
+        moveToCurrentLocationUI.style.borderBottom = "1px solid white";
         moveToCurrentLocationUI.addEventListener("click", () => {
             this.moveToCurrentPosition();
         });
 
+        // 팝업 테스트 버튼
+        const showPopupUI = document.createElement("div");
+        showPopupUI.id = "show-popup";
+        showPopupUI.innerText = "팝업 윈도우 테스트";
+        showPopupUI.style.cursor = "pointer";
+        showPopupUI.style.color = "white";
+        showPopupUI.style.textAlign = "center";
+        showPopupUI.addEventListener("click", () => {
+            const overlay = document.createElement('div');
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    document.getElementById('map').removeChild(overlay);
+                }
+            });
+
+            overlay.className = 'overlay'
+            const popup = document.createElement('div');
+            popup.classList.add('popup');
+            popup.addEventListener('click', (event) => {
+                event.stopPropagation(); // 팝업 내부 클릭 시 이벤트 전파 중단
+            });
+
+            const btnGame = document.createElement('div');
+            btnGame.classList.add('btn-game');
+
+            for (let i = 1; i <= 9; i++) {
+                const button = document.createElement('button');
+                button.textContent = 'Button ' + i;
+                //show toast popup using bootstrap
+                button.addEventListener('click', () => {
+                });
+                btnGame.appendChild(button);
+            }
+
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = '취소';
+            cancelButton.className = 'btn btn-danger';
+            cancelButton.style.marginTop = '10px';
+            cancelButton.addEventListener('click', () => {
+                document.getElementById('map').removeChild(overlay);
+            });
+
+            popup.appendChild(btnGame);
+            popup.appendChild(cancelButton);
+            overlay.appendChild(popup);
+            document.getElementById('map').appendChild(overlay);
+        });
+
         controlDiv.appendChild(controlUI);
         controlDiv.appendChild(moveToCurrentLocationUI);
+        controlDiv.appendChild(showPopupUI);
 
-        controlUI.addEventListener("click", () => {
-            //this.moveToCurrentPosition();
-            this.moveCameraToUnit(this.#userId);
-        });
+
         this.map.controls[google.maps.ControlPosition.RIGHT_TOP].push(controlDiv);
     }
 
@@ -334,8 +385,12 @@ export default class RealMap {
 
     async moveCameraToUnit(id) {
         console.log(this.units.get(id));
-        this.map.panTo(await this.units.get(id).getCurrentCenter());
-        this.map.setZoom(16);
+        if (this.units.get(id)) {
+            this.map.panTo(await this.units.get(id).getCurrentCenter());
+            this.map.setZoom(16);
+        } else {
+            console.log("해당 유닛이 없습니다.");
+        }
     }
 
     #moveUnit(message) {
