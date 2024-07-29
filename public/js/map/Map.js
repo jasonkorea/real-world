@@ -16,15 +16,123 @@ export default class RealMap {
     #userId;
     instance;
 
-    constructor(map, googleId) {
-        this.#userId = googleId;
-        this.isInitialized = false;
-        this.#initMap();
-        this.#map = map;
-        this.units = new Map();
-        this.UnitOverlay = UnitOverlay();
-        RealMap.instance = this;
-        this.toggleUnitDisplayBasedOnZoom();
+    constructor(googleId) {
+        (async () => {
+            /* global google */
+            await google.maps.importLibrary("maps");
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 17,
+                center: { lat: 37.5665, lng: 126.9780 },
+                disableDoubleClickZoom: true,
+                streetViewControl: false,
+                zoomControl: false,
+                mapTypeControl: false,
+                clickableIcons: false,
+                //어두운 회색 배경
+                backgroundColor: "#2c5a71",
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [
+                            {
+                                visibility: "off",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry",
+                        stylers: [
+                            {
+                                visibility: "simplified",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "labels",
+                        stylers: [
+                            {
+                                visibility: "off",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "transit",
+                        elementType: "labels.icon",
+                        stylers: [
+                            {
+                                visibility: "off",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "administrative",
+                        elementType: "geometry",
+                        stylers: [
+                            {
+                                visibility: "off",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "landscape",
+                        elementType: "geometry",
+                        stylers: [
+                            {
+                                color: "#2c5a71",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "geometry",
+                        stylers: [
+                            {
+                                color: "#193341",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "landscape.natural",
+                        elementType: "labels",
+                        stylers: [
+                            {
+                                visibility: "off",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "landscape.man_made",
+                        elementType: "geometry",
+                        stylers: [
+                            {
+                                color: "#334e87",
+                            },
+                        ],
+                    },
+                    {
+                        featureType: "landscape.man_made",
+                        elementType: "labels",
+                        stylers: [
+                            {
+                                visibility: "off",
+                            },
+                        ],
+                    },
+                ],
+            });
+            this.#userId = googleId;
+            this.isInitialized = false;
+            this.#initMap();
+            this.#map = map;
+            this.units = new Map();
+            this.UnitOverlay = UnitOverlay();
+            RealMap.instance = this;
+            this.toggleUnitDisplayBasedOnZoom();
+        })();
+
     }
 
     async #initMap() {
@@ -128,7 +236,6 @@ export default class RealMap {
 
     // eslint-disable-next-line no-unused-private-class-members
     async #createMarker() {
-        /* global google */
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
         const img = document.createElement("img");

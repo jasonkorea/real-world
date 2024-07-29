@@ -12,7 +12,7 @@ exports.createOrUpdateUnit = async (msg) => {
         const user = await User.findOne({ googleId: msg.sender });
         if (!user) {
             console.log('사용자를 찾을 수 없습니다.');
-            throw new Error('사용자를 찾을 수 없습니다.');
+            //throw new Error('사용자를 찾을 수 없습니다.');
         }
         console.log('사용자를 찾았습니다.');
         console.log(user);
