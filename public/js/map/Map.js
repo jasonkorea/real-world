@@ -7,6 +7,19 @@ import MainPanel from "../control/MainPanel.js";
 import GameTimer from "../anim/GameTimer.js";
 
 export default class RealMap {
+    //['Attack', 'Move', 'Stop', 'Patrol', 'Hold Position', 'Follow', 'Gather', 'Build', 'Train'];
+    #Actions = {
+        ATTACK: 1,
+        MOVE: 2,
+        STOP: 3,
+        PATROL: 4,
+        HOLD_POSITION: 5,
+        FOLLOW: 6,
+        GATHER: 7,
+        BUILD: 8,
+        TRAIN: 9
+    };
+
     #map;
     get map() {
         return this.#map;
@@ -190,8 +203,6 @@ export default class RealMap {
 
         this.#map.addListener('click', async (event) => {
             console.log('clicked!', event.latLng.toJSON());
-            //MainPanel.getInstance().addChat({sender: "Map(Click)", message: `${event.latLng.toJSON().lat}, ${event.latLng.toJSON().lng}`});
-
 
             let unit = this.units.get(this.#userId);
             let center;
@@ -329,24 +340,25 @@ export default class RealMap {
                 button.textContent = buttons[i - 1];
                 button.addEventListener('click', () => {
                     this.currentAction = i;
+
+                    this.#handleEventFromPopupWindow();
                     let toastLiveExample = document.getElementById('liveToast');
-            
+
                     // 기존 토스트 인스턴스 제거
                     if (toastLiveExample.toastInstance) {
                         toastLiveExample.toastInstance.dispose();
                     }
-            
+
                     // eslint-disable-next-line no-undef
                     const toastBootstrap = new bootstrap.Toast(toastLiveExample, { delay: 2000 });
                     toastLiveExample.toastInstance = toastBootstrap;
-            
                     //set message from action
                     toastLiveExample.querySelector('.toast-body').innerText = buttons[i - 1];
                     toastBootstrap.show();
-            
+
                     document.getElementById('map').removeChild(overlay);
                 });
-            
+
                 btnGame.appendChild(button);
             }
 
@@ -477,6 +489,16 @@ export default class RealMap {
             startTime,
             userName
         };
+    }
+
+    async #handleEventFromPopupWindow() {
+        if (this.currentAction) {
+            console.log("currentAction : ", this.currentAction);
+            if (this.currentAction === this.#Actions.STOP) {
+                console.log("STOP");
+        
+            }
+        }
     }
 
     static getInstance() {
