@@ -8,6 +8,7 @@ import GameTimer from "../anim/GameTimer.js";
 
 export default class RealMap {
     //['Attack', 'Move', 'Stop', 'Patrol', 'Hold Position', 'Follow', 'Gather', 'Build', 'Train'];
+    #buttons = ['Attack', 'Move', 'Stop', 'Patrol', 'Hold Position', 'Follow', 'Gather', 'Build', 'Train'];
     #Actions = {
         ATTACK: 1,
         MOVE: 2,
@@ -334,10 +335,9 @@ export default class RealMap {
             const btnGame = document.createElement('div');
             btnGame.classList.add('btn-game');
 
-            const buttons = ['Attack', 'Move', 'Stop', 'Patrol', 'Hold Position', 'Follow', 'Gather', 'Build', 'Train'];
             for (let i = 1; i <= 9; i++) {
                 const button = document.createElement('button');
-                button.textContent = buttons[i - 1];
+                button.textContent = this.#buttons[i - 1];
                 button.addEventListener('click', () => {
                     this.currentAction = i;
 
@@ -353,7 +353,7 @@ export default class RealMap {
                     const toastBootstrap = new bootstrap.Toast(toastLiveExample, { delay: 2000 });
                     toastLiveExample.toastInstance = toastBootstrap;
                     //set message from action
-                    toastLiveExample.querySelector('.toast-body').innerText = buttons[i - 1];
+                    toastLiveExample.querySelector('.toast-body').innerText = this.#buttons[i - 1];
                     toastBootstrap.show();
 
                     document.getElementById('map').removeChild(overlay);
@@ -493,7 +493,7 @@ export default class RealMap {
 
     async #handleEventFromPopupWindow() {
         if (this.currentAction) {
-            console.log("currentAction : ", this.currentAction);
+            console.log("currentAction : ", this.#buttons[this.currentAction - 1]);
             if (this.currentAction === this.#Actions.STOP) {
                 console.log("STOP");
         
