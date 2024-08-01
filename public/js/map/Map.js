@@ -323,12 +323,30 @@ export default class RealMap {
             const btnGame = document.createElement('div');
             btnGame.classList.add('btn-game');
 
+            const buttons = ['Attack', 'Move', 'Stop', 'Patrol', 'Hold Position', 'Follow', 'Gather', 'Build', 'Train'];
             for (let i = 1; i <= 9; i++) {
                 const button = document.createElement('button');
-                button.textContent = 'Button ' + i;
-                //show toast popup using bootstrap
+                button.textContent = buttons[i - 1];
                 button.addEventListener('click', () => {
+                    this.currentAction = i;
+                    let toastLiveExample = document.getElementById('liveToast');
+            
+                    // 기존 토스트 인스턴스 제거
+                    if (toastLiveExample.toastInstance) {
+                        toastLiveExample.toastInstance.dispose();
+                    }
+            
+                    // eslint-disable-next-line no-undef
+                    const toastBootstrap = new bootstrap.Toast(toastLiveExample, { delay: 2000 });
+                    toastLiveExample.toastInstance = toastBootstrap;
+            
+                    //set message from action
+                    toastLiveExample.querySelector('.toast-body').innerText = buttons[i - 1];
+                    toastBootstrap.show();
+            
+                    document.getElementById('map').removeChild(overlay);
                 });
+            
                 btnGame.appendChild(button);
             }
 

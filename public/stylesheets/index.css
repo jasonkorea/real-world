@@ -216,3 +216,15 @@ nav {
   right: 20px;
   z-index: 10000;
 }
+
+#liveToast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050; /* Bootstrap의 기본 z-index보다 높게 설정 */
+}
+
+.toast-body {
+  text-align: center;
+}
