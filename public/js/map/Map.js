@@ -417,7 +417,7 @@ export default class RealMap {
         console.log(this.units.get(id));
         if (this.units.get(id)) {
             this.map.panTo(await this.units.get(id).getCurrentCenter());
-            this.map.setZoom(16);
+            this.map.setZoom(15);
         } else {
             console.log("해당 유닛이 없습니다.");
         }
