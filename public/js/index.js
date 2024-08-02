@@ -59,6 +59,8 @@ async function initMap() {
             GameTimer.getInstance().setServerTimeOffset(message.data - Date.now());
         } else if (message.type === 'move_missile') {
             /* empty */
+        } else if (message.type === 'collision') {
+            handleCollision(message.unit1, message.unit2, message.time);
         }
     });
 
@@ -91,7 +93,7 @@ async function initMap() {
         });
     });
 }
-// ============================================================= 
+// =============================================================
 
 function setUserInfoFromHeader(user) {
     const body = document.querySelector('body');
@@ -105,5 +107,11 @@ function setUserInfoFromHeader(user) {
         userinfo.image,
         new Date(userinfo.createdAt));
 }
+
+// 유닛의 충돌을 처리하는 함수
+const handleCollision = (unit1Id, unit2Id, collisionTime) => {
+    console.log(`Collision detected between unit ${unit1Id} and unit ${unit2Id} at time ${collisionTime}`);
+};
+
 
 initMap();

@@ -159,10 +159,18 @@ export default class RealMap {
         this.#addGPSListener();
 
 
+        let cnt = 0;
         while (!this.position) {
+            cnt++;
+            if (cnt > 10) {
+                console.log("Failed to get position! Set default");
+                this.position = { coords: { latitude: 37.1586, longitude: 127.1685 } };
+                break;
+            }
             await new Promise(resolve => {
                 console.log("waiting for position...");
                 setTimeout(resolve, 500);
+                cnt++;
             });
         }
 

@@ -70,7 +70,91 @@ const io = socketio(server);
 dbm.clearAllUnits();
 
 
+//================================
+const calculateCurrentPosition = (unit, currentTime) => {
+  const timeElapsed = (currentTime - unit.startTime) / 1000; // 초 단위 경과 시간
+  const distanceTraveled = unit.speed * timeElapsed; // 이동 거리
+  const totalDistance = Math.sqrt(
+      Math.pow(unit.destinationPosition.lat - unit.startPosition.lat, 2) +
+      Math.pow(unit.destinationPosition.lng - unit.startPosition.lng, 2)
+  );
+  const fractionTraveled = distanceTraveled / totalDistance;
 
+  const currentLat = unit.startPosition.lat + fractionTraveled * (unit.destinationPosition.lat - unit.startPosition.lat);
+  const currentLng = unit.startPosition.lng + fractionTraveled * (unit.destinationPosition.lng - unit.startPosition.lng);
+
+  return { lat: currentLat, lng: currentLng };
+};
+
+const calculateAngle = (start, end) => {
+  const dx = end.lng - start.lng;
+  const dy = end.lat - start.lat;
+  return Math.atan2(dy, dx);
+}
+
+const calculateCollisionTime = (unit1, unit2) => {
+  console.log("Calculating collision time...");
+  console.log(`Unit1: ${JSON.stringify(unit1)}`);
+  console.log(`Unit2: ${JSON.stringify(unit2)}`);
+
+  const dx = unit1.startPosition.lat - unit2.startPosition.lat;
+  const dy = unit1.startPosition.lng - unit2.startPosition.lng;
+  console.log(`dx: ${dx}, dy: ${dy}`);
+
+  const angle1 = calculateAngle(unit1.startPosition, unit1.destinationPosition);
+  const angle2 = calculateAngle(unit2.startPosition, unit2.destinationPosition);
+  console.log(`angle1: ${angle1}, angle2: ${angle2}`);
+
+  const dvx = unit1.speed * Math.cos(angle1) - unit2.speed * Math.cos(angle2);
+  const dvy = unit1.speed * Math.sin(angle1) - unit2.speed * Math.sin(angle2);
+  console.log(`dvx: ${dvx}, dvy: ${dvy}`);
+
+  const a = dvx * dvx + dvy * dvy;
+  const b = 2 * (dx * dvx + dy * dvy);
+  const c = dx * dx + dy * dy - Math.pow(unit1.size + unit2.size, 2); // 유닛 크기를 고려한 거리
+  console.log(`a: ${a}, b: ${b}, c: ${c}`);
+
+  const discriminant = b * b - 4 * a * c;
+  console.log(`discriminant: ${discriminant}`);
+
+  if (discriminant < 0) {
+      console.log("No collision: discriminant < 0");
+      return null; // 충돌 없음
+  }
+
+  const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+  const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
+  console.log(`t1: ${t1}, t2: ${t2}`);
+
+  const collisionTime = Math.min(t1, t2);
+  console.log(`collisionTime: ${collisionTime}`);
+
+  if (collisionTime <= 0) {
+      console.log("No collision: collisionTime <= 0");
+      return null; // 충돌 시간이 현재 또는 이전이면 충돌 없음
+  }
+
+  return collisionTime;
+}
+
+const handleCollision = async (unit1, unit2, collisionTime, io) => {
+  console.log(`Collision detected between unit ${unit1.id} and unit ${unit2.id} at time ${collisionTime}`);
+
+  const currentTime = Date.now();
+  unit1.currentPosition = calculateCurrentPosition(unit1, currentTime);
+  unit2.currentPosition = calculateCurrentPosition(unit2, currentTime);
+
+  // 충돌 발생 시 유닛을 정지 상태로 설정
+  unit1.destinationPosition = unit1.currentPosition;
+  unit2.destinationPosition = unit2.currentPosition;
+
+  await unit1.save();
+  await unit2.save();
+
+  // 클라이언트에 충돌 정보 전달
+  io.emit('message', { type: 'collision', unit1: unit1.id, unit2: unit2.id, time: collisionTime });
+};
+//================================
 
 
 
@@ -98,6 +182,19 @@ io.on('connection', (socket) => {
         console.log('freshUnit is null');
         return;
       }
+
+      const units = await dbm.getAllUnits();
+      for (let unit of units) {
+          if (unit.id !== freshUnit.id) {
+              const collisionTime = calculateCollisionTime(freshUnit, unit);
+              console.log('collisionTime', collisionTime);
+              if (collisionTime) {
+                  await handleCollision(freshUnit, unit, collisionTime, io);
+                  break;
+              }
+          }
+      }
+
       console.log('freshUnit : id', freshUnit.id);
       const userName = await dbm.getDisplayNameByGoogleId(msg.sender);
       const response = {
