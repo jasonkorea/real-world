@@ -468,13 +468,6 @@ export default function createUnitOverlayClass() {
             requestAnimationFrame(animate);
         }
 
-        #followMarker() {
-            this.#followInterval = setInterval(() => {
-                //console.log('getCurrentCenter', this.getCurrentCenter());
-                this.smoothPanTo(this.map, this.getCurrentCenter(), 1000);
-            }, 1000);
-        }
-
         hideMarker() {
             if (this.marker) {
                 this.marker.setMap(null);
