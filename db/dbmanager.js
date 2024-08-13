@@ -61,8 +61,6 @@ exports.createOrUpdateUnit = async (msg) => {
 
             console.log('startTime:', existingUnit.startTime);
             console.log(`유닛을 찾았습니다. startTime : ${startTime}`);
-            // 업데이트된 유닛을 저장합니다.
-            console.log('유닛을 저장합니다.');
             await existingUnit.save();
             console.log('유닛이 업데이트되었습니다.');
         } else {

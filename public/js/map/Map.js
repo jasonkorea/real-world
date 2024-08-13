@@ -183,7 +183,7 @@ export default class RealMap {
                 startPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
                 destinationPosition: { lat: this.position.coords.latitude, lng: this.position.coords.longitude },
                 size: 20,
-                speed: 10,
+                speed: 0,
                 image: '../resources/cc.png',
                 userName: '기지'
             }

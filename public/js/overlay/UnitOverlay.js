@@ -7,12 +7,12 @@ export default function createUnitOverlayClass() {
 
         #bounds;
         #id;
-        #startPosition;
-        #destinationPosition;
-        #startTime;
+        startPosition;
+        destinationPosition;
+        startTime;
         #moving = false;
-        #speed;
-        #size;
+        speed;
+        size;
         #userName;
         degree;
         isSelected = false;
@@ -25,16 +25,16 @@ export default function createUnitOverlayClass() {
             this.polyline = null;
             this.degree = 0;
             this.#id = info.googleId;
-            this.#size = info.size;
-            this.#speed = info.speed;
+            this.size = info.size;
+            this.speed = info.speed;
             this.image = info.image;
-            this.#startPosition = new google.maps.LatLng(info.startPosition.lat, info.startPosition.lng);
-            this.#destinationPosition = new google.maps.LatLng(info.destinationPosition.lat, info.destinationPosition.lng);
+            this.startPosition = new google.maps.LatLng(info.startPosition.lat, info.startPosition.lng);
+            this.destinationPosition = new google.maps.LatLng(info.destinationPosition.lat, info.destinationPosition.lng);
             this.calculatedSpeed = info.speed / 3600;
-            this.#startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
+            this.startTime = info.startTime || GlobalTimer.getInstance().getServerTime();
             this.#userName = info.userName;
             this.#isMe = info.isMe;
-            this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
+            this.#setBounds(this.startPosition.lat(), this.startPosition.lng(), this.size);
             if (info.zIndex) {
                 this.#zIndex = info.zIndex;
             }
@@ -73,38 +73,6 @@ export default function createUnitOverlayClass() {
 
         get lng() {
             return this.#bounds.getCenter().lng();
-        }
-
-        get startPosition() {
-            return this.#startPosition;
-        }
-
-        get startTime() {
-            return this.#startTime;
-        }
-
-        set startTime(value) {
-            this.#startTime = value;
-        }
-
-        get speed() {
-            return this.#speed;
-        }
-
-        get size() {
-            return this.#size;
-        }
-
-        set startPosition(value) {
-            this.#startPosition = value;
-        }
-
-        set size(value) {
-            this.#size = value;
-        }
-
-        set speed(value) {
-            this.#speed = value;
         }
 
         onAdd() {
@@ -298,9 +266,9 @@ export default function createUnitOverlayClass() {
             if (!this.#moving) return;
             const elapsedTime = this.#getElapsedTimeInSeconds();
             const distanceTraveled = this.#calculateDistanceTraveled(elapsedTime);
-            const currentLatLng = this.#getCurrentPosition(this.#startPosition, this.#destinationPosition, distanceTraveled);
+            const currentLatLng = this.#getCurrentPosition(this.startPosition, this.destinationPosition, distanceTraveled);
             if (!currentLatLng || this.#hasReachedDestination(currentLatLng)) {
-                this.#setBounds(this.#destinationPosition.lat(), this.#destinationPosition.lng(), this.#size);
+                this.#setBounds(this.destinationPosition.lat(), this.destinationPosition.lng(), this.size);
                 this.draw();
                 this.#moving = false;
 
@@ -320,11 +288,11 @@ export default function createUnitOverlayClass() {
         }
 
         #hasReachedDestination(currentLatLng) {
-            return google.maps.geometry.spherical.computeDistanceBetween(currentLatLng, this.#destinationPosition) < 1;
+            return google.maps.geometry.spherical.computeDistanceBetween(currentLatLng, this.destinationPosition) < 1;
         }
 
         #getElapsedTimeInSeconds() {
-            return (GlobalTimer.getInstance().getServerTime() - this.#startTime);
+            return (GlobalTimer.getInstance().getServerTime() - this.startTime);
         }
 
         #calculateDistanceTraveled(elapsedTime) {
@@ -332,13 +300,13 @@ export default function createUnitOverlayClass() {
         }
 
         #updateOverlayPosition(currentLatLng) {
-            this.#setBounds(currentLatLng.lat(), currentLatLng.lng(), this.#size);
+            this.#setBounds(currentLatLng.lat(), currentLatLng.lng(), this.size);
         }
 
         getCurrentCenter() {
             const elapsedTime = this.#getElapsedTimeInSeconds();
             const distanceTraveled = this.#calculateDistanceTraveled(elapsedTime);
-            const currentLatLng = this.#getCurrentPosition(this.#startPosition, this.#destinationPosition, distanceTraveled);
+            const currentLatLng = this.#getCurrentPosition(this.startPosition, this.destinationPosition, distanceTraveled);
             return currentLatLng;
         }
 
@@ -369,14 +337,14 @@ export default function createUnitOverlayClass() {
             }
         
             // Set the start and destination positions
-            this.#startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
-            this.#destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
+            this.startPosition = new google.maps.LatLng(startPosition.lat, startPosition.lng);
+            this.destinationPosition = new google.maps.LatLng(destinationPosition.lat, destinationPosition.lng);
         
             // Set the start time based on whether the move was initiated by a click
-            this.#startTime = clicked ? startTime : GlobalTimer.getInstance().getServerTime();
+            this.startTime = clicked ? startTime : GlobalTimer.getInstance().getServerTime();
         
             // Set the bounds for the movement
-            this.#setBounds(this.#startPosition.lat(), this.#startPosition.lng(), this.#size);
+            this.#setBounds(this.startPosition.lat(), this.startPosition.lng(), this.size);
             this.#moving = true;
         
             // Update the marker position if it exists
@@ -391,15 +359,15 @@ export default function createUnitOverlayClass() {
                 return;
             }
             // Calculate the total distance and travel time
-            const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(this.#startPosition, this.#destinationPosition);
-            const travelTimeSeconds = totalDistance / (this.#speed / 3.6);
-            console.log("speed", this.#speed);
+            const totalDistance = google.maps.geometry.spherical.computeDistanceBetween(this.startPosition, this.destinationPosition);
+            const travelTimeSeconds = totalDistance / (this.speed / 3.6);
+            console.log("speed", this.speed);
             console.log("totalDistance", totalDistance);
             console.log("travelTimeSeconds", travelTimeSeconds);
 
         
             // Calculate the arrival time
-            const arrivalTime = new Date(this.#startTime + travelTimeSeconds * 1000);
+            const arrivalTime = new Date(this.startTime + travelTimeSeconds * 1000);
         
             // Format the date and time for display
             const formattedDate = arrivalTime.toLocaleDateString();
@@ -501,7 +469,7 @@ export default function createUnitOverlayClass() {
         }
 
         updatePolyline(currentLatLng) {
-            const path = [currentLatLng, this.#destinationPosition];
+            const path = [currentLatLng, this.destinationPosition];
             if (!this.polyline) {
                 this.polyline = new google.maps.Polyline({
                     path: path,
