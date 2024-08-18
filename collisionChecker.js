@@ -52,58 +52,55 @@ module.exports = {
 };
 
 function optimizedPredictCollisionTime(currentA, currentB, speedA, speedB, radiusA, radiusB, destinationA, destinationB) {
-    // 두 객체가 정지 상태일 경우
-    if (speedA === 0 && speedB === 0) {
-        const distanceBetweenUnits = computeDistanceBetween(currentA, currentB);
-        if (distanceBetweenUnits <= (radiusA + radiusB)) {
-            console.log("Collision detected between stationary objects.");
-            return Date.now();
-        }
-        return -1;
-    }
-
     const timeStep = 0.5; // 500ms 단위로 체크 (시간 단위 조정)
-    const maxTime = 30; // 최대 30초 동안 충돌 체크 (범위 축소)
+    const toleranceSteps = 5; // 거리가 증가할 수 있는 초기 단계 허용
 
-    // 충돌 가능성 필터링: 서로 반대 방향으로 이동하거나 충돌 가능성이 없는 경우
-    if (!isPotentialCollision(currentA, currentB, destinationA, destinationB, radiusA, radiusB)) {
-        return -1; // 충돌 없음
-    }
+    let previousDistance = computeDistanceBetween(currentA, currentB);
+    let increasingDistanceCount = 0;
 
-    for (let t = 0; t < maxTime; t += timeStep) {
+    let t = 0;
+    while (true) {
         const futureA = calculateFuturePosition(currentA, destinationA, speedA, t);
         const futureB = calculateFuturePosition(currentB, destinationB, speedB, t);
-        const distanceBetweenUnits = computeDistanceBetween(futureA, futureB);
 
-        if (distanceBetweenUnits <= (radiusA + radiusB)) {
+        // 대원거리 계산
+        const greatCircleDistanceBetweenUnits = computeDistanceBetween(futureA, futureB);
+
+        console.log(`t=${t}s: Unit A: ${futureA.lat}, ${futureA.lng} | Unit B: ${futureB.lat}, ${futureB.lng}`);
+        console.log(`Great-circle distance between units: ${greatCircleDistanceBetweenUnits} km`);
+        console.log(`Previous distance: ${previousDistance} km`);
+
+        // 충돌 감지
+        if (greatCircleDistanceBetweenUnits <= (radiusA + radiusB)) {
             console.log(`Collision detected at t=${t}s`);
             return Date.now() + t * 1000; // 충돌 시간 반환
         }
-    }
 
-    return -1; // 충돌 없음
-}
-
-// 충돌 가능성 사전 필터링 함수
-function isPotentialCollision(currentA, currentB, destinationA, destinationB, radiusA, radiusB) {
-    // 방향 벡터 계산
-    const directionA = { lat: destinationA.lat - currentA.lat, lng: destinationA.lng - currentA.lng };
-    const directionB = { lat: destinationB.lat - currentB.lat, lng: destinationB.lng - currentB.lng };
-
-    // 두 객체가 반대 방향으로 이동하는 경우
-    if ((directionA.lat * directionB.lat + directionA.lng * directionB.lng) < 0) {
-        const distanceBetweenUnits = computeDistanceBetween(currentA, currentB);
-        if (distanceBetweenUnits > (radiusA + radiusB)) {
-            console.log("Objects moving in opposite directions, no collision expected.");
-            return false;
+        // 초기 단계에서는 거리가 증가할 수 있음
+        if (greatCircleDistanceBetweenUnits >= previousDistance) {
+            increasingDistanceCount++;
+            if (increasingDistanceCount > toleranceSteps) {
+                console.log("Distance increasing or no significant reduction, ending loop.");
+                return -1; // 충돌 없음
+            }
+        } else {
+            increasingDistanceCount = 0; // 거리가 줄어들기 시작하면 초기화
         }
-    }
 
-    return true;
+        // 다음 스텝으로 진행
+        previousDistance = greatCircleDistanceBetweenUnits;
+        t += timeStep;
+
+        console.log(`Incremented time step to t=${t}s\n`);
+    }
 }
 
-// 미래의 위치를 계산하는 함수
+// 미래의 위치를 계산하는 함수 (변경 없음)
 function calculateFuturePosition(currentPosition, destination, speed, time) {
+    if (currentPosition.lat === destination.lat && currentPosition.lng === destination.lng) {
+        return currentPosition; // 현재 위치 그대로 반환
+    }
+
     const totalDistance = computeDistanceBetween(currentPosition, destination);
     const distanceTraveled = (speed * time) / 3600; // km 단위
 
@@ -114,6 +111,7 @@ function calculateFuturePosition(currentPosition, destination, speed, time) {
     const ratio = distanceTraveled / totalDistance;
     return interpolatePosition(currentPosition, destination, ratio);
 }
+
 
 function interpolatePosition(start, end, ratio) {
     const φ1 = start.lat * Math.PI / 180;
