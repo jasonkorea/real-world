@@ -117,8 +117,7 @@ io.on('connection', (socket) => {
               size: unit.size
             }
           );
-          console.log('collisionTime', collisionTime);
-          if (collisionTime) {
+          if (collisionTime != -1) {
             await handleCollision(freshUnit, unit, collisionTime, io);
           }
         }
@@ -191,10 +190,20 @@ io.on('connection', (socket) => {
 });
 
 const handleCollision = async (unit1, unit2, collisionTime, io) => {
-  
 
-  //const currentTime = Date.now();
-
+  const date = new Date(collisionTime);
+  const options = {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+  };
+  const kstTime = date.toLocaleString('ko-KR', options);
+  console.log('충돌 발생 시간:', kstTime);
 
   // 충돌 발생 시 유닛을 정지 상태로 설정
   // unit1.destinationPosition = unit1.currentPosition;
@@ -204,7 +213,7 @@ const handleCollision = async (unit1, unit2, collisionTime, io) => {
   // await unit2.save();
 
   // 클라이언트에 충돌 정보 전달
-  io.emit('message', { type: 'collision', unit1: unit1.id, unit2: unit2.id, time: collisionTime });
+  //io.emit('message', { type: 'collision', unit1: unit1.id, unit2: unit2.id, time: collisionTime });
 };
 
 async function createWorldUser() {
