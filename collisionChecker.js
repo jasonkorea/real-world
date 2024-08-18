@@ -1,79 +1,79 @@
 const R = 6371e3; // 지구 반지름 (미터 단위)
-const TOLERANCE = 0.01;
 
 module.exports = {
     collisionCheck: function (moveInfo1, moveInfo2) {
         const currentTimeMillis = Date.now();
 
+        console.log("----- Collision Check Start -----");
+        console.log("Current Time (ms):", currentTimeMillis);
         console.log("moveInfo1.id:", moveInfo1.id, "moveInfo2.id:", moveInfo2.id);
 
-        const calculatedSpeedA = moveInfo1.speed; // km/h 단위
-        console.log("calculatedSpeedA:", calculatedSpeedA);
-        const calculatedSpeedB = moveInfo2.speed; // km/h 단위
-        console.log("calculatedSpeedB:", calculatedSpeedB);
+        const speedA = moveInfo1.speed; // km/h 단위
+        const speedB = moveInfo2.speed; // km/h 단위
+        console.log("Speed A (km/h):", speedA, "Speed B (km/h):", speedB);
 
-        const startPositonA = convertDecimal128ToNumber(moveInfo1.startPosition);
-        console.log("startPositonA:", startPositonA);
-
+        const startPositionA = convertDecimal128ToNumber(moveInfo1.startPosition);
         const destinationPositionA = convertDecimal128ToNumber(moveInfo1.destinationPosition);
-        console.log("destinationPositionA:", destinationPositionA);
-
-        const startPositonB = convertDecimal128ToNumber(moveInfo2.startPosition);
-        console.log("startPositonB:", startPositonB);
-        
+        const startPositionB = convertDecimal128ToNumber(moveInfo2.startPosition);
         const destinationPositionB = convertDecimal128ToNumber(moveInfo2.destinationPosition);
-        console.log("destinationPositionB:", destinationPositionB);
+        console.log("Start Position A:", startPositionA, "Destination Position A:", destinationPositionA);
+        console.log("Start Position B:", startPositionB, "Destination Position B:", destinationPositionB);
 
         const requestTimeMillisA = moveInfo1.startTime;
         const requestTimeMillisB = moveInfo2.startTime;
+        console.log("Request Time A (ms):", requestTimeMillisA, "Request Time B (ms):", requestTimeMillisB);
 
-        const elapsedTimeA = (currentTimeMillis - requestTimeMillisA) / 1000; // Convert to seconds
-        const elapsedTimeB = (currentTimeMillis - requestTimeMillisB) / 1000; // Convert to seconds
-        const distanceTraveledA = calculatedSpeedA * elapsedTimeA;
-        const distanceTraveledB = calculatedSpeedB * elapsedTimeB;
+        const elapsedTimeA = (currentTimeMillis - requestTimeMillisA) / 1000; // 초 단위
+        const elapsedTimeB = (currentTimeMillis - requestTimeMillisB) / 1000; // 초 단위
+        console.log("Elapsed Time A (s):", elapsedTimeA, "Elapsed Time B (s):", elapsedTimeB);
 
-        console.log("elapsedTimeA:", elapsedTimeA, "elapsedTimeB:", elapsedTimeB);
-        console.log("distanceTraveledA:", distanceTraveledA, "distanceTraveledB:", distanceTraveledB);
+        const currentLatLngA = getCurrentPosition(startPositionA, destinationPositionA, (speedA * elapsedTimeA) / 3600);
+        const currentLatLngB = getCurrentPosition(startPositionB, destinationPositionB, (speedB * elapsedTimeB) / 3600);
+        console.log("Current Position A:", currentLatLngA, "Current Position B:", currentLatLngB);
 
-        const radiusA = moveInfo1.size / 2;
-        console.log("radiusA:", radiusA);
-        const radiusB = moveInfo2.size / 2;
-        console.log("radiusB:", radiusB);
+        const radiusA = moveInfo1.size / 1000 / 2; // 반경을 km로 변환
+        const radiusB = moveInfo2.size / 1000 / 2; // 반경을 km로 변환
+        console.log("Radius A (km):", radiusA, "Radius B (km):", radiusB);
 
-        const currentLatLngA = getCurrentPosition(startPositonA, destinationPositionA, distanceTraveledA);
-        const currentLatLngB = getCurrentPosition(startPositonB, destinationPositionB, distanceTraveledB);
+        // 미래의 위치를 기반으로 충돌 예측
+        const collisionTimeMillis = predictCollisionTime(currentLatLngA, currentLatLngB, speedA, speedB, radiusA, radiusB, destinationPositionA, destinationPositionB);
 
-        console.log("currentLatLngA:", currentLatLngA, "currentLatLngB:", currentLatLngB);
-
-        const distance = computeDistanceBetween(currentLatLngA, currentLatLngB);
-        console.log("distance between current positions:", distance);
-
-        if (!arePathsCrossingWithRadius(startPositonA, destinationPositionA, radiusA, startPositonB, destinationPositionB, radiusB)) {
-            console.log("Paths do not cross");
-            return -1; // 경로가 교차하지 않으면 충돌 없음
+        if (collisionTimeMillis === -1) {
+            console.log("No collision detected.");
+        } else {
+            console.log(`Collision detected at time ${collisionTimeMillis}`);
         }
 
-        let collisionTime;
-        if (calculatedSpeedA === 0 && calculatedSpeedB === 0) {
-            console.log("No collision: Both speeds are 0");
-            return -1; // 두 객체가 모두 정지 상태이면 충돌 없음
-        } else if (calculatedSpeedA === 0) {
-            collisionTime = (distance - radiusA - radiusB) / (calculatedSpeedB / 3.6); // km/h to m/s
-        } else if (calculatedSpeedB === 0) {
-            collisionTime = (distance - radiusA - radiusB) / (calculatedSpeedA / 3.6); // km/h to m/s
-        } else {
-            collisionTime = (distance - radiusA - radiusB) / ((calculatedSpeedA + calculatedSpeedB) / 3.6); // km/h to m/s
-        }
-        console.log("collisionTime:", collisionTime);
+        console.log("----- Collision Check End -----");
+        return collisionTimeMillis;
+    }
+};
 
-        if (collisionTime <= 0) {
-            console.log("No collision: collisionTime <= 0");
-            return -1; // 충돌 시간이 현재 또는 이전이면 충돌 없음
-        } else {
-            console.log(`Collision detected between unit ${moveInfo1.id} and unit ${moveInfo2.id} at time ${collisionTime}`);
-            return collisionTime;
+// 미래의 위치를 계산하는 함수
+function calculateFuturePosition(currentPosition, direction, speed, time) {
+    const distance = (speed * time) / 3600; // km 단위
+    return getCurrentPosition(currentPosition, direction, distance);
+}
+
+// 충돌 예측을 계산하는 함수
+function predictCollisionTime(currentA, currentB, speedA, speedB, radiusA, radiusB, destinationA, destinationB) {
+    const relativeSpeed = computeRelativeSpeedAdvanced(currentA, currentB, speedA, speedB, currentA, destinationA, currentB, destinationB);
+    console.log("Computed Relative Speed (km/h):", relativeSpeed);
+
+    const timeStep = 0.1; // 100ms 단위로 체크
+    for (let t = 0; t < 60; t += timeStep) { // 최대 60초 동안 충돌 체크
+        const futureA = calculateFuturePosition(currentA, destinationA, speedA, t);
+        const futureB = calculateFuturePosition(currentB, destinationB, speedB, t);
+        const distanceBetweenUnits = computeDistanceBetween(futureA, futureB);
+        console.log(`At time t=${t}s, Distance Between Units (km): ${distanceBetweenUnits}`);
+
+        if (distanceBetweenUnits <= (radiusA + radiusB)) {
+            console.log(`Collision detected at t=${t}s`);
+            return Date.now() + t * 1000; // 충돌 시간 반환
         }
     }
+
+    return -1; // 충돌 없음
 }
 
 function convertDecimal128ToNumber(position) {
@@ -96,143 +96,44 @@ function getCurrentPosition(start, end, distance) {
 }
 
 function computeDistanceBetween(startLatLng, destLatLng) {
-    if (!startLatLng || !destLatLng || startLatLng.lat == null || startLatLng.lng == null || destLatLng.lat == null || destLatLng.lng == null) {
-        console.error("Invalid input points:", startLatLng, destLatLng);
-        return NaN;
-    }
-
-    if (startLatLng.lat === destLatLng.lat && startLatLng.lng === destLatLng.lng) {
-        return 0;
-    }
-
     const φ1 = startLatLng.lat * Math.PI / 180;
     const φ2 = destLatLng.lat * Math.PI / 180;
     const Δφ = (destLatLng.lat - startLatLng.lat) * Math.PI / 180;
     const Δλ = (destLatLng.lng - startLatLng.lng) * Math.PI / 180;
 
-    console.log("φ1:", φ1, "φ2:", φ2, "Δφ:", Δφ, "Δλ:", Δλ);
-
     const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    console.log("a:", a);
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    console.log("c:", c);
-
-    const dist = R * c;
-    console.log("distance:", dist);
-    return dist; // 거리 (미터 단위)
+    return R * c / 1000; // 거리 (킬로미터 단위)
 }
 
-function arePathsCrossingWithRadius(startA, endA, radiusA, startB, endB, radiusB) {
-    const adjustedStartA = adjustPointByRadius(startA, radiusA);
-    const adjustedEndA = adjustPointByRadius(endA, radiusA);
-    const adjustedStartB = adjustPointByRadius(startB, radiusB);
-    const adjustedEndB = adjustPointByRadius(endB, radiusB);
+function computeRelativeSpeedAdvanced(currentA, currentB, speedA, speedB, startA, endA, startB, endB) {
+    const directionA = { lat: endA.lat - startA.lat, lng: endA.lng - startA.lng };
+    const isAStationary = startA.lat === endA.lat && startA.lng === endA.lng;
+    const isBStationary = startB.lat === endB.lat && startB.lng === endB.lng;
+    let relativeSpeed;
 
-    console.log("adjustedStartA:", adjustedStartA, "adjustedEndA:", adjustedEndA);
-    console.log("adjustedStartB:", adjustedStartB, "adjustedEndB:", adjustedEndB);
+    if (isAStationary) {
+        relativeSpeed = speedB;
+    } else if (isBStationary) {
+        relativeSpeed = speedA;
+    } else {
+        const directionB = { lat: endB.lat - startB.lat, lng: endB.lng - startB.lng };
+        const magnitudeA = Math.sqrt(directionA.lat ** 2 + directionA.lng ** 2);
+        const magnitudeB = Math.sqrt(directionB.lat ** 2 + directionB.lng ** 2);
+        const normalizedDirectionA = { lat: directionA.lat / magnitudeA, lng: directionA.lng / magnitudeA };
+        const normalizedDirectionB = { lat: directionB.lat / magnitudeB, lng: directionB.lng / magnitudeB };
+        const dotProduct = normalizedDirectionA.lat * normalizedDirectionB.lat + normalizedDirectionA.lng * normalizedDirectionB.lng;
+        const angleBetween = Math.acos(dotProduct);
 
-    const intersect = doLinesIntersect(adjustedStartA, adjustedEndA, adjustedStartB, adjustedEndB, radiusA, radiusB);
-    console.log("Paths intersect:", intersect);
-    return intersect;
-}
-
-function adjustPointByRadius(point, radius) {
-    const earthRadius = 6371e3; // Earth's radius in meters
-    const dLat = radius / earthRadius;
-    const dLng = radius / (earthRadius * Math.cos(point.lat * Math.PI / 180));
-
-    return {
-        lat: point.lat + (dLat * 180 / Math.PI),
-        lng: point.lng + (dLng * 180 / Math.PI)
-    };
-}
-
-function doLinesIntersect(p1, p2, p3, p4, radius1, radius2) {
-    const d1 = direction(p3, p4, p1);
-    const d2 = direction(p3, p4, p2);
-    const d3 = direction(p1, p2, p3);
-    const d4 = direction(p1, p2, p4);
-
-    console.log("d1:", d1, "d2:", d2, "d3:", d3, "d4:", d4);
-
-    if (((d1 > TOLERANCE && d2 < -TOLERANCE) || (d1 < -TOLERANCE && d2 > TOLERANCE)) &&
-        ((d3 > TOLERANCE && d4 < -TOLERANCE) || (d3 < -TOLERANCE && d4 > TOLERANCE))) {
-        console.log("Lines intersect based on direction.");
-        return true;
+        relativeSpeed = Math.sqrt(speedA ** 2 + speedB ** 2 - 2 * speedA * speedB * Math.cos(angleBetween));
     }
 
-    if (Math.abs(d1) <= TOLERANCE && onSegment(p3, p4, p1)) {
-        console.log("Point p1 is on segment p3-p4.");
-        return true;
-    }
-    if (Math.abs(d2) <= TOLERANCE && onSegment(p3, p4, p2)) {
-        console.log("Point p2 is on segment p3-p4.");
-        return true;
-    }
-    if (Math.abs(d3) <= TOLERANCE && onSegment(p1, p2, p3)) {
-        console.log("Point p3 is on segment p1-p2.");
-        return true;
-    }
-    if (Math.abs(d4) <= TOLERANCE && onSegment(p1, p2, p4)) {
-        console.log("Point p4 is on segment p1-p2.");
-        return true;
+    if (isNaN(relativeSpeed)) {
+        relativeSpeed = speedA;
     }
 
-    // 추가: 객체의 크기를 고려한 충돌 감지
-    if (circlesIntersect(p1, radius1, p3, radius2)) {
-        console.log("Circle around p1 intersects with circle around p3.");
-        return true;
-    }
-    if (circlesIntersect(p1, radius1, p4, radius2)) {
-        console.log("Circle around p1 intersects with circle around p4.");
-        return true;
-    }
-    if (circlesIntersect(p2, radius1, p3, radius2)) {
-        console.log("Circle around p2 intersects with circle around p3.");
-        return true;
-    }
-    if (circlesIntersect(p2, radius1, p4, radius2)) {
-        console.log("Circle around p2 intersects with circle around p4.");
-        return true;
-    }
-
-    console.log("No intersection detected.");
-    return false;
-}
-
-function direction(pi, pj, pk) {
-    return (pk.lat - pi.lat) * (pj.lng - pi.lng) - (pj.lat - pi.lat) * (pk.lng - pi.lng);
-}
-
-function onSegment(pi, pj, pk) {
-    return Math.min(pi.lat, pj.lat) <= pk.lat && pk.lat <= Math.max(pi.lat, pj.lat) &&
-           Math.min(pi.lng, pj.lng) <= pk.lng && pk.lng <= Math.max(pi.lng, pj.lng);
-}
-
-function circlesIntersect(c1, r1, c2, r2) {
-    const distance = haversineDistance(c1, c2);
-    console.log(`Distance between circles: ${distance}, Sum of radii: ${r1 + r2}`);
-    if (distance <= (r1 + r2)) {
-        console.log("Already in collision state.");
-        return -2; // 이미 충돌 상태
-    }
-    return distance <= (r1 + r2);
-}
-
-function haversineDistance(coord1, coord2) {
-    const R = 6371e3; // 지구의 반지름 (미터)
-    const φ1 = coord1.lat * Math.PI / 180;
-    const φ2 = coord2.lat * Math.PI / 180;
-    const Δφ = (coord2.lat - coord1.lat) * Math.PI / 180;
-    const Δλ = (coord2.lng - coord1.lng) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // 미터 단위 거리 반환
+    return relativeSpeed;
 }

@@ -191,7 +191,7 @@ io.on('connection', (socket) => {
 });
 
 const handleCollision = async (unit1, unit2, collisionTime, io) => {
-  console.log(`Collision detected between unit ${unit1.id} and unit ${unit2.id} at time ${collisionTime}`);
+  
 
   //const currentTime = Date.now();
 
