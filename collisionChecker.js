@@ -135,32 +135,3 @@ function computeDistanceBetween(startLatLng, destLatLng) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c / 1000; // 거리 (킬로미터 단위)
 }
-
-function computeRelativeSpeedAdvanced(currentA, currentB, speedA, speedB, startA, endA, startB, endB) {
-    const directionA = { lat: endA.lat - startA.lat, lng: endA.lng - startA.lng };
-    const isAStationary = startA.lat === endA.lat && startA.lng === endA.lng;
-    const isBStationary = startB.lat === endB.lat && startB.lng === endB.lng;
-    let relativeSpeed;
-
-    if (isAStationary) {
-        relativeSpeed = speedB;
-    } else if (isBStationary) {
-        relativeSpeed = speedA;
-    } else {
-        const directionB = { lat: endB.lat - startB.lat, lng: endB.lng - startB.lng };
-        const magnitudeA = Math.sqrt(directionA.lat ** 2 + directionA.lng ** 2);
-        const magnitudeB = Math.sqrt(directionB.lat ** 2 + directionB.lng ** 2);
-        const normalizedDirectionA = { lat: directionA.lat / magnitudeA, lng: directionA.lng / magnitudeA };
-        const normalizedDirectionB = { lat: directionB.lat / magnitudeB, lng: directionB.lng / magnitudeB };
-        const dotProduct = normalizedDirectionA.lat * normalizedDirectionB.lat + normalizedDirectionA.lng * normalizedDirectionB.lng;
-        const angleBetween = Math.acos(dotProduct);
-
-        relativeSpeed = Math.sqrt(speedA ** 2 + speedB ** 2 - 2 * speedA * speedB * Math.cos(angleBetween));
-    }
-
-    if (isNaN(relativeSpeed)) {
-        relativeSpeed = speedA;
-    }
-
-    return relativeSpeed;
-}
