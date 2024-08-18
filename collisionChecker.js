@@ -35,8 +35,10 @@ module.exports = {
         const radiusB = moveInfo2.size / 1000 / 2; // 반경을 km로 변환
         console.log("Radius A (km):", radiusA, "Radius B (km):", radiusB);
 
-        // 미래의 위치를 기반으로 충돌 예측
-        const collisionTimeMillis = predictCollisionTime(currentLatLngA, currentLatLngB, speedA, speedB, radiusA, radiusB, destinationPositionA, destinationPositionB);
+        // 최적화된 충돌 예측
+        const collisionTimeMillis = optimizedPredictCollisionTime(
+            currentLatLngA, currentLatLngB, speedA, speedB, radiusA, radiusB, destinationPositionA, destinationPositionB
+        );
 
         if (collisionTimeMillis === -1) {
             console.log("No collision detected.");
@@ -49,23 +51,14 @@ module.exports = {
     }
 };
 
-// 미래의 위치를 계산하는 함수
-function calculateFuturePosition(currentPosition, direction, speed, time) {
-    const distance = (speed * time) / 3600; // km 단위
-    return getCurrentPosition(currentPosition, direction, distance);
-}
+function optimizedPredictCollisionTime(currentA, currentB, speedA, speedB, radiusA, radiusB, destinationA, destinationB) {
+    const timeStep = 0.5; // 500ms 단위로 체크 (시간 단위 조정)
+    const maxTime = 30; // 최대 30초 동안 충돌 체크 (범위 축소)
 
-// 충돌 예측을 계산하는 함수
-function predictCollisionTime(currentA, currentB, speedA, speedB, radiusA, radiusB, destinationA, destinationB) {
-    const relativeSpeed = computeRelativeSpeedAdvanced(currentA, currentB, speedA, speedB, currentA, destinationA, currentB, destinationB);
-    console.log("Computed Relative Speed (km/h):", relativeSpeed);
-
-    const timeStep = 0.1; // 100ms 단위로 체크
-    for (let t = 0; t < 60; t += timeStep) { // 최대 60초 동안 충돌 체크
+    for (let t = 0; t < maxTime; t += timeStep) {
         const futureA = calculateFuturePosition(currentA, destinationA, speedA, t);
         const futureB = calculateFuturePosition(currentB, destinationB, speedB, t);
         const distanceBetweenUnits = computeDistanceBetween(futureA, futureB);
-        console.log(`At time t=${t}s, Distance Between Units (km): ${distanceBetweenUnits}`);
 
         if (distanceBetweenUnits <= (radiusA + radiusB)) {
             console.log(`Collision detected at t=${t}s`);
@@ -74,6 +67,40 @@ function predictCollisionTime(currentA, currentB, speedA, speedB, radiusA, radiu
     }
 
     return -1; // 충돌 없음
+}
+
+// 미래의 위치를 계산하는 함수
+function calculateFuturePosition(currentPosition, destination, speed, time) {
+    const totalDistance = computeDistanceBetween(currentPosition, destination);
+    const distanceTraveled = (speed * time) / 3600; // km 단위
+
+    if (distanceTraveled >= totalDistance) {
+        return destination;
+    }
+
+    const ratio = distanceTraveled / totalDistance;
+    return interpolatePosition(currentPosition, destination, ratio);
+}
+
+function interpolatePosition(start, end, ratio) {
+    const φ1 = start.lat * Math.PI / 180;
+    const λ1 = start.lng * Math.PI / 180;
+    const φ2 = end.lat * Math.PI / 180;
+    const λ2 = end.lng * Math.PI / 180;
+
+    const δφ = φ2 - φ1;
+    const δλ = λ2 - λ1;
+
+    const A = Math.sin((1 - ratio) * δφ) / Math.sin(δφ);
+    const B = Math.sin(ratio * δφ) / Math.sin(δφ);
+
+    const x = A * Math.cos(φ1) + B * Math.cos(φ2);
+    const y = A * Math.sin(φ1) + B * Math.sin(φ2);
+
+    const newLat = Math.atan2(y, x) * 180 / Math.PI;
+    const newLng = (λ1 + ratio * δλ) * 180 / Math.PI;
+
+    return { lat: newLat, lng: newLng };
 }
 
 function convertDecimal128ToNumber(position) {
