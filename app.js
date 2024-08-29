@@ -1,5 +1,3 @@
-//https://github.com/atultyagi612/Google-Authentication-nodejs/blob/main/app.js
-
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -19,6 +17,16 @@ dotenv.config({ path: './config/config.env' });
 var app = express();
 const PORT = process.env.PORT || 3000;
 
+// HTTPS 서버 설정
+var sslOptions = {
+  ca: fs.readFileSync(path.join(__dirname, 'SSL', 'projectj.tplinkdns.com-chain.pem')),          // 체인 파일 (또는 chain-only 파일 사용 가능)
+  key: fs.readFileSync(path.join(__dirname, 'SSL', 'projectj.tplinkdns.com-key.pem')),           // 개인 키 파일
+  cert: fs.readFileSync(path.join(__dirname, 'SSL', 'projectj.tplinkdns.com-crt.pem')),          // 인증서 파일
+};
+
+var server = https.createServer(sslOptions, app);
+const io = socketio(server);
+
 createWorldUser();
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -27,14 +35,14 @@ mongoose.connect(process.env.MONGO_URI, {
 }).then(() => console.log('Connected to MongoDB'))
   .catch(err => console.log(err));
 
-// Passport config
+// Passport 설정
 require('./config/passport')(passport);
 
-// Middleware
+// Middleware 설정
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-app.set('views', path.join(__dirname, 'public', 'views'))
+app.set('views', path.join(__dirname, 'public', 'views'));
 app.set('view engine', 'ejs');
 
 app.use(
@@ -53,26 +61,8 @@ app.use(passport.session());
 app.use(require("./routes/index"));
 app.use('/auth', require('./routes/auth'));
 
-// SSL options
-var sslOptions = {
-  ca: fs.readFileSync('./SSL/ca_bundle.crt'),
-  key: fs.readFileSync('./SSL/private.key'),
-  cert: fs.readFileSync('./SSL/certificate.crt'),
-};
-
-var server = https.createServer(sslOptions, app);
-const io = socketio(server);
-
-
-
-
-
-//clear all units
-dbm.clearAllUnits();
-
-// 클라이언트 연결 이벤트 처리
+// 소켓 연결 처리
 io.on('connection', (socket) => {
-
   console.log('A user connected');
   socket.emit('serverTime', { currentTime: Date.now() });
   socket.emit('message', { type: 'notice', sender: 'server', message: '현재 위치를 인식중입니다. 인식 후 "내 유닛으로 이동" 버튼을 눌러주세요.' });
@@ -88,7 +78,6 @@ io.on('connection', (socket) => {
     if (msg.type === 'serverTime') {
       socket.emit('message', { type: 'serverTime', data: Date.now() });
     } else if (msg.type === 'move') {
-      //get displayName from googleId
       const freshUnit = await dbm.createOrUpdateUnit(msg);
       if (!freshUnit) {
         console.log('freshUnit is null');
@@ -145,31 +134,20 @@ io.on('connection', (socket) => {
     } else if (msg.type === 'requestInitialData' ||
       (msg.type === 'visibilitychange' && msg.visibility === 'visible')) {
       const units = await dbm.getAllUnits();
-      console.log('unitssssss', units);
-
       units.forEach(async unit => {
         if (!unit.startPosition.lat) {
           console.log('unit.startPosition.lat is null');
           return;
         }
-        const startLatString = unit.startPosition.lat.toString();
-        const startLngString = unit.startPosition.lng.toString();
-        const startPosition = { lat: parseFloat(startLatString), lng: parseFloat(startLngString) };
-        const destLatString = unit.destinationPosition.lat.toString();
-        const destLngString = unit.destinationPosition.lng.toString();
-        const destinationPosition = { lat: parseFloat(destLatString), lng: parseFloat(destLngString) };
-        const idString = unit.id.toString();
+        const startPosition = { lat: parseFloat(unit.startPosition.lat.toString()), lng: parseFloat(unit.startPosition.lng.toString()) };
+        const destinationPosition = { lat: parseFloat(unit.destinationPosition.lat.toString()), lng: parseFloat(unit.destinationPosition.lng.toString()) };
         const userName = await dbm.getDisplayNameByGoogleId(unit.id);
         const serverTime = Date.now();
-        io.emit('serverTime', { currentTime: Date.now() });
-
-        console.log('server time', serverTime);
-        console.log('unit.startTime', unit.startTime);
-        console.log('serverTime > unit.startTime', serverTime > unit.startTime);
+        io.emit('serverTime', { currentTime: serverTime });
 
         const response = {
           type: 'move',
-          sender: idString,
+          sender: unit.id.toString(),
           unitInfo: {
             startPosition: startPosition,
             destinationPosition: destinationPosition,
@@ -189,40 +167,34 @@ io.on('connection', (socket) => {
   });
 });
 
-const handleCollision = async (unit1, unit2, collisionTime, io) => {
-
+// 충돌 처리 함수
+async function handleCollision(unit1, unit2, collisionTime, io) {
   const date = new Date(collisionTime);
   const options = {
-      timeZone: 'Asia/Seoul',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
   };
   const kstTime = date.toLocaleString('ko-KR', options);
   console.log('충돌 발생 시간:', kstTime);
 
-  // 충돌 발생 시 유닛을 정지 상태로 설정
-  // unit1.destinationPosition = unit1.currentPosition;
-  // unit2.destinationPosition = unit2.currentPosition;
-
-  // await unit1.save();
-  // await unit2.save();
-
   // 클라이언트에 충돌 정보 전달
-  //io.emit('message', { type: 'collision', unit1: unit1.id, unit2: unit2.id, time: collisionTime });
-};
+  io.emit('message', { type: 'collision', unit1: unit1.id, unit2: unit2.id, time: collisionTime });
+}
 
+// World User 생성 함수
 async function createWorldUser() {
   const worldUser = await User.findOne({ googleId: Util.getWorldId() });
   if (worldUser) {
     console.log('worldUser exists');
   } else {
     console.log('worldUser does not exist. Creating worldUser');
-    const worldUser = {
+    const newWorldUser = {
       googleId: Util.getWorldId(),
       displayName: 'world',
       firstName: 'world',
@@ -230,11 +202,16 @@ async function createWorldUser() {
       image: 'world',
       email: 'world'
     }
-    await User.create(worldUser);
+    await User.create(newWorldUser);
   }
 }
 
+// HTTPS 서버 시작
 server.listen(PORT, () => {
-  console.log(`listening at ${PORT}`);
+  console.log(`HTTPS server running on port ${PORT}`);
 });
 
+// HTTP 서버 시작 (포트 80에서 HTTP 요청 수신)
+app.listen(80, () => {
+  console.log('HTTP server running on port 80');
+});
